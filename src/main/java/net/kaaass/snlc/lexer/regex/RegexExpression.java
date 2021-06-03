@@ -60,4 +60,11 @@ public abstract class RegexExpression {
     public RegexExpression oneOrMany() {
         return concat(this, this.many());
     }
+
+    /**
+     * 匹配 0 或 1 次
+     */
+    public RegexExpression zeroOrOne() {
+        return or(this, new ExprEmpty());
+    }
 }

@@ -22,4 +22,8 @@ public class NfaState {
      * 状态出边
      */
     private List<NfaEdge> nextEdges = new ArrayList<>();
+
+    public void addEdge(NfaEdge edge) {
+        this.nextEdges.add(edge);
+    }
 }
