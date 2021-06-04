@@ -3,8 +3,7 @@ package net.kaaass.snlc.lexer.nfa;
 import lombok.*;
 
 /**
- * NFA 状态机边，表示状态转移
- *
+ * 非确定状态机边，表示状态转移
  * @author kaaass
  */
 @Data

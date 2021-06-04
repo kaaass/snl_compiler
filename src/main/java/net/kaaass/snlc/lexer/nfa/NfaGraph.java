@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * NFA 状态机状态图，包含状态列表、进入边、最终节点
+ * 非确定状态机状态图，包含状态列表、进入边、最终节点
  *
  * @author kaaass
  */

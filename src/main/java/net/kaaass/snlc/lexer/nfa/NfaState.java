@@ -8,8 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * NFA 状态机状态，为状态图的一个节点，包含
- *
+ * 非确定状态机状态，为状态图的一个节点，包含出边集合
  * @author kaaass
  */
 @Data
