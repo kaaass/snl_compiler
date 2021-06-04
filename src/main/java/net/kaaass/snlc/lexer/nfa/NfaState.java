@@ -1,8 +1,6 @@
 package net.kaaass.snlc.lexer.nfa;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,8 +9,13 @@ import java.util.List;
  * 非确定状态机状态，为状态图的一个节点，包含出边集合
  * @author kaaass
  */
-@Data
+@Getter
+@Setter
+@ToString(of = {"id"})
+@EqualsAndHashCode(of = {"parent", "id"})
 public class NfaState {
+
+    private NfaGraph parent = null;
 
     @Setter(AccessLevel.PACKAGE)
     private int id = -1;

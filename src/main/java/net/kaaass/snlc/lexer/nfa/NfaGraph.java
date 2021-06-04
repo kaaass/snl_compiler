@@ -1,16 +1,19 @@
 package net.kaaass.snlc.lexer.nfa;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 非确定状态机状态图，包含状态列表、进入边、最终节点
- *
  * @author kaaass
  */
-@Data
+@Getter
+@Setter
+@ToString
 public class NfaGraph {
 
     /**
@@ -33,6 +36,7 @@ public class NfaGraph {
      */
     public void addState(NfaState state) {
         state.setId(this.states.size());
+        state.setParent(this);
         this.states.add(state);
     }
 
