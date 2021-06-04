@@ -10,6 +10,9 @@ import net.kaaass.snlc.lexer.regex.*;
  * @author kaaass
  */
 public class ThompsonRegexTranslator implements IRegexExprVisitor<NfaGraph> {
+
+    public final static ThompsonRegexTranslator INSTANCE = new ThompsonRegexTranslator();
+
     /**
      * 转换空式
      */

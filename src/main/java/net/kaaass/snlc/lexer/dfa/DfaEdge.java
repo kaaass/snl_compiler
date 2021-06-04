@@ -25,6 +25,10 @@ public class DfaEdge {
         this.nextState = to;
     }
 
+    public static DfaEdge edge(char matchChar) {
+        return new DfaEdge(matchChar);
+    }
+
     public static DfaEdge edgeTo(char matchChar, DfaState to) {
         return new DfaEdge(matchChar, to);
     }

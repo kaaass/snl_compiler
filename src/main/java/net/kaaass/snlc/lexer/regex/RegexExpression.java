@@ -1,5 +1,8 @@
 package net.kaaass.snlc.lexer.regex;
 
+import net.kaaass.snlc.lexer.ThompsonRegexTranslator;
+import net.kaaass.snlc.lexer.nfa.NfaGraph;
+
 /**
  * 正则表达式节点基类
  *
@@ -66,5 +69,9 @@ public abstract class RegexExpression {
      */
     public RegexExpression zeroOrOne() {
         return or(this, new ExprEmpty());
+    }
+
+    public NfaGraph toNfa() {
+        return accept(ThompsonRegexTranslator.INSTANCE);
     }
 }

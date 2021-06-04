@@ -11,7 +11,7 @@ import lombok.*;
 @AllArgsConstructor
 public class NfaEdge {
 
-    private final static char EMPTY_CHAR = '\0';
+    public final static char EMPTY_CHAR = '\0';
 
     private final char matchChar;
 
@@ -30,6 +30,10 @@ public class NfaEdge {
      */
     public boolean isEmpty() {
         return this.matchChar == EMPTY_CHAR;
+    }
+
+    public static NfaEdge edge(char matchChar) {
+        return new NfaEdge(matchChar);
     }
 
     public static NfaEdge empty() {
