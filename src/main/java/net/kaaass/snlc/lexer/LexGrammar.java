@@ -2,7 +2,6 @@ package net.kaaass.snlc.lexer;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import net.kaaass.snlc.lexer.regex.RegexExpression;
 

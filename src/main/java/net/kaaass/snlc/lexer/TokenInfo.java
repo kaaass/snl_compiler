@@ -3,7 +3,10 @@ package net.kaaass.snlc.lexer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import net.kaaass.snlc.lexer.engine.BaseLexEngine;
 import net.kaaass.snlc.lexer.regex.RegexExpression;
+
+import java.util.function.Consumer;
 
 /**
  * 记录 token 定义
@@ -30,4 +33,58 @@ public class TokenInfo<T> {
      * 匹配 token 的正则表达式
      */
     private final RegexExpression regex;
+
+    /**
+     * 匹配后执行的动作
+     */
+    private Consumer<TokenContext<T>> matchedAction = null;
+
+    /**
+     * 设置匹配后执行的动作。若不设置则默认接受。
+     */
+    public void action(Consumer<TokenContext<T>> consumer) {
+        this.matchedAction = consumer;
+    }
+
+    /**
+     * 忽略匹配到的 Token
+     */
+    public void ignore() {
+        action(ctx -> {});
+    }
+
+    /**
+     * Token 匹配上下文。匹配执行动作的参数。
+     */
+    public abstract static class TokenContext<R> {
+
+        /**
+         * 匹配当前 Token
+         */
+        public void accept() {
+            accept(matchedType().type, matchedString());
+        }
+
+        /**
+         * 匹配指定 Token
+         * @param type Token 类型
+         * @param content 内容
+         */
+        public abstract void accept(R type, String content);
+
+        /**
+         * 解决指定 Token
+         */
+        public abstract void reject();
+
+        /**
+         * 已匹配的类型
+         */
+        public abstract TokenInfo<R> matchedType();
+
+        /**
+         * 已匹配的内容
+         */
+        public abstract String matchedString();
+    }
 }

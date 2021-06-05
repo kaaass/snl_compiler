@@ -61,11 +61,23 @@ public class BasicEngine<T> extends BaseLexEngine<T> {
             // 回退流
             this.stream.revert(initSState);
             // 产生 token
-            var token = new TokenResult<>(context.getToken(lastAccept));
-            token.setToken(this.stream.readUtilState(lastSState));
-            // 确认之前内容
-            this.stream.accept(lastSState);
-            return token;
+            var result = processMatchedToken(context, lastAccept, lastSState);
+            switch (result.getType()) {
+                case ACCEPT:
+                    // 接受 Token，确认之前内容后返回
+                    this.stream.accept(lastSState);
+                    this.stream.revert(lastSState);
+                    return result.getToken();
+                case REJECT:
+                    // 拒绝 Token，不支持
+                    throw new RuntimeException("引擎不支持拒绝操作！");
+                case NONE:
+                default:
+                    // 不进行操作，确认之前内容后递归调用
+                    this.stream.accept(lastSState);
+                    this.stream.revert(lastSState);
+                    return readToken(context);
+            }
         }
         // 如果不是 eof 报错
         if (!eofFlag) {

@@ -11,6 +11,7 @@ import net.kaaass.snlc.lexer.regex.RegexExpression;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,16 +30,23 @@ public class LexContext<T> {
 
     private final List<TokenInfo<T>> tokens = new ArrayList<>();
 
+    private final Map<T, TokenInfo<T>> tokenMap = new HashMap<>();
+
     private State state = null;
 
     public void addToken(TokenInfo<T> token) {
         token.setId(this.tokens.size());
         token.setParent(this);
         this.tokens.add(token);
+        this.tokenMap.put(token.getType(), token);
     }
 
     public TokenInfo<T> getToken(int id) {
         return this.tokens.get(id);
+    }
+
+    public TokenInfo<T> getToken(T type) {
+        return this.tokenMap.get(type);
     }
 
     /**

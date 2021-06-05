@@ -90,8 +90,8 @@ public class SnlLexerFactory {
         g.defineToken(LANNOTATE, "{");
         g.defineToken(RANNOTATE, "}");
 
-        // 定义空白
-        g.defineToken(WHITESPACE, charset(' ', '\t', '\n'));
+        // 定义空白，并忽略
+        g.defineToken(WHITESPACE, charset(' ', '\t', '\n')).ignore();
 
         return g.compile();
     }
