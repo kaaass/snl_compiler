@@ -25,6 +25,11 @@ public class NfaState {
      */
     private List<NfaEdge> nextEdges = new ArrayList<>();
 
+    /**
+     * 状态匹配 token
+     */
+    private int matchedToken = -1;
+
     public void addEdge(NfaEdge edge) {
         this.nextEdges.add(edge);
     }

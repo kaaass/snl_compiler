@@ -18,11 +18,14 @@ public class DfaSerializer {
 
     private int[][] transMat = null;
 
+    private List<List<Integer>> tokenMat = null;
+
     private final DfaGraph dfa;
 
     private void run() {
         runCharMap();
         runTransMat();
+        runTokenMat();
     }
 
     private void runCharMap() {
@@ -47,6 +50,13 @@ public class DfaSerializer {
                 int chr = this.charMap.get(edge.getMatchChar());
                 this.transMat[i][chr] = edge.getNextState().getId();
             }
+        }
+    }
+
+    private void runTokenMat() {
+        this.tokenMat = new ArrayList<>();
+        for (var state : this.dfa.getStates()) {
+            this.tokenMat.add(state.getMatchedTokens());
         }
     }
 

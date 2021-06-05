@@ -25,6 +25,11 @@ public class DfaState {
     private Set<NfaState> nfaStates = null;
 
     /**
+     * 状态匹配 token
+     */
+    private List<Integer> matchedTokens = null;
+
+    /**
      * 状态出边
      */
     private List<DfaEdge> nextEdges = new ArrayList<>();
