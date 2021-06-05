@@ -3,10 +3,7 @@ package net.kaaass.snlc.lexer.engine;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.kaaass.snlc.lexer.LexContext;
-import net.kaaass.snlc.lexer.Lexer;
-import net.kaaass.snlc.lexer.TokenInfo;
-import net.kaaass.snlc.lexer.TokenResult;
+import net.kaaass.snlc.lexer.*;
 import net.kaaass.snlc.lexer.exception.LexParseException;
 
 import java.util.ArrayList;
@@ -73,7 +70,16 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
         var action = tokenInfo.getMatchedAction();
         // 如果没有设置动作，直接接受
         if (action == null) {
-            return ActionResult.accept(acceptToken(context, tokenInfo.getType(), getMatchedString(endStreamState)));
+            String matched;
+            // LiteralTokenInfo 可以直接获得声明时使用的字面量
+            if (tokenInfo instanceof LiteralTokenInfo<?>) {
+                matched = ((LiteralTokenInfo<T>) tokenInfo).getLiteral();
+            } else {
+                matched = getMatchedString(endStreamState);
+            }
+            return ActionResult.accept(acceptToken(context,
+                    tokenInfo.getType(),
+                    matched));
         }
         // 否则调用 action
         // 准备上下文

@@ -21,7 +21,9 @@ public class LexGrammar<T> {
      * @param literal 字面量
      */
     public TokenInfo<T> defineToken(T type, String literal) {
-        return defineToken(type, RegexExpression.string(literal));
+        var token = new LiteralTokenInfo<>(type, literal);
+        context.addToken(token);
+        return token;
     }
 
     /**
