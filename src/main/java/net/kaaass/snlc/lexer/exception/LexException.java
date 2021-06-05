@@ -5,4 +5,18 @@ package net.kaaass.snlc.lexer.exception;
  * @author kaaass
  */
 public class LexException extends Exception {
+    public LexException() {
+    }
+
+    public LexException(String message) {
+        super(message);
+    }
+
+    public LexException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public LexException(Throwable cause) {
+        super(cause);
+    }
 }

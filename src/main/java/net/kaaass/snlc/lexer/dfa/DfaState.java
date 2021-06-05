@@ -17,10 +17,12 @@ import java.util.Set;
 @EqualsAndHashCode(of = {"parent", "id"})
 public class DfaState {
 
+    public final static int DEAD = -1;
+
     private DfaGraph parent = null;
 
     @Setter(AccessLevel.PACKAGE)
-    private int id = -1;
+    private int id = DEAD;
 
     private Set<NfaState> nfaStates = null;
 

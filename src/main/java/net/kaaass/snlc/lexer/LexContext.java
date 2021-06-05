@@ -16,6 +16,7 @@ import java.util.Map;
 
 /**
  * 词法分析上下文，包含对指定语法的真正分析
+ *
  * @author kaaass
  */
 @Getter
@@ -34,6 +35,10 @@ public class LexContext<T> {
         token.setId(this.tokens.size());
         token.setParent(this);
         this.tokens.add(token);
+    }
+
+    public TokenInfo<T> getToken(int id) {
+        return this.tokens.get(id);
     }
 
     /**
@@ -72,17 +77,22 @@ public class LexContext<T> {
 
         private static final long serialVersionUID = 2039325900482461802L;
 
-        private final Map<Character, Integer> charMap;
+        public final Map<Character, Integer> charMap;
 
-        private final int[][] transMat;
+        public final int[][] transMat;
 
-        private final List<List<Integer>> tokenMat;
+        public final List<List<Integer>> tokenMat;
+
+        public final int startState;
 
         private transient WeakReference<DfaGraph> source = null;
 
         public static State fromDfa(DfaGraph dfa) {
             var serializer = DfaSerializer.serialize(dfa);
-            var ret = new State(serializer.getCharMap(), serializer.getTransMat(), serializer.getTokenMat());
+            var ret = new State(serializer.getCharMap(),
+                    serializer.getTransMat(),
+                    serializer.getTokenMat(),
+                    dfa.getStartState().getId());
             ret.source = new WeakReference<>(dfa);
             return ret;
         }

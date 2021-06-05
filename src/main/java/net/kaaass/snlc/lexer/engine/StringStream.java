@@ -30,9 +30,14 @@ public class StringStream implements IRevertibleStream {
 
     @Override
     public char read() {
-        if (this.pos == this.data.length()) {
+        if (isEof()) {
             return EOF;
         }
         return this.data.charAt(this.pos++);
+    }
+
+    @Override
+    public boolean isEof() {
+        return this.pos == this.data.length();
     }
 }

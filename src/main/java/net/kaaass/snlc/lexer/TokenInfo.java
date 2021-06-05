@@ -2,6 +2,7 @@ package net.kaaass.snlc.lexer;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import net.kaaass.snlc.lexer.regex.RegexExpression;
 
 /**
@@ -10,12 +11,15 @@ import net.kaaass.snlc.lexer.regex.RegexExpression;
  * @author kaaass
  */
 @Data
+@ToString(of = {"id", "type"})
 @EqualsAndHashCode(of = {"parent", "id"})
 public class TokenInfo<T> {
 
+    public final static int DEAD = -1;
+
     private LexContext<T> parent = null;
 
-    private int id = -1;
+    private int id = DEAD;
 
     /**
      * token 类型

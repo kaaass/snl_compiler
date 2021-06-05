@@ -1,14 +1,12 @@
 package net.kaaass.snlc.lexer;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Data;
 
 /**
  * Token 匹配结果
  * @author kaaass
  */
-@Getter
-@RequiredArgsConstructor
+@Data
 public class TokenResult<T> {
 
     private final TokenInfo<T> definition;

@@ -27,4 +27,17 @@ public interface IRevertibleStream {
      * 读入一个字符
      */
     char read();
+
+    /**
+     * 流是否完成读入
+     */
+    boolean isEof();
+
+    default String readUtilState(int state) {
+        StringBuilder sb = new StringBuilder();
+        while (getState() != state) {
+            sb.append(read());
+        }
+        return sb.toString();
+    }
 }

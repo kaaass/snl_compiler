@@ -44,7 +44,7 @@ public class DfaSerializer {
         // 遍历状态
         for (int i = 0; i < n; i++) {
             var state = states.get(i);
-            Arrays.fill(this.transMat[i], -1);
+            Arrays.fill(this.transMat[i], DfaState.DEAD);
             // 遍历边
             for (var edge : state.getNextEdges()) {
                 int chr = this.charMap.get(edge.getMatchChar());
