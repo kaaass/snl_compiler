@@ -13,10 +13,10 @@ public class SubsetConstructAlgorithmTestMain {
     public static void printGraph(DfaGraph graph) {
         System.out.println("Start state: " + graph.getStartState().getId());
         graph.getStates().forEach(state -> {
-            var from = state.getId();
+            var from = state;
             state.getNextEdges().forEach(edge -> {
-                var to = edge.getNextState().getId();
-                System.out.printf("%d --%c--> %d\n", from, edge.getMatchChar(), to);
+                var to = edge.getNextState();
+                System.out.printf("%s --%c--> %s\n", from, edge.getMatchChar(), to);
             });
         });
     }
@@ -63,9 +63,10 @@ public class SubsetConstructAlgorithmTestMain {
         printGraph(SubsetConstructAlgorithm.convert(nfa));
 
         // a+b*|ac*|abc
-        var regex = or(concat(single('a').oneOrMany(), single('b').many()),
-                or(concat(single('a'), single('c').many()),
-                        string("abc")));
+        var regex = or(
+                concat(single('a').oneOrMany(), single('b').many()).group(0),
+                or(concat(single('a'), single('c').many()).group(1),
+                        string("abc").group(2)));
 
         printGraph(SubsetConstructAlgorithm.convert(regex.toNfa()));
     }

@@ -59,6 +59,15 @@ public class SubsetConstructAlgorithm {
         // 创建状态
         subsetMap.put(cur, newState);
         newState.setNfaStates(cur);
+        // 处理匹配 token
+        var matchedTokens = cur.stream()
+                .map(NfaState::getMatchedToken)
+                .filter(id -> id != -1)
+                .sorted()
+                .collect(Collectors.toList());
+        if (!matchedTokens.isEmpty()) {
+            newState.setMatchedTokens(matchedTokens);
+        }
         // 添加状态
         dfa.addState(newState);
         // 返回 ID

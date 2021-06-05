@@ -47,7 +47,9 @@ public class SubsetConstructAlgorithmTest extends TestCase {
         }
         // ret
         nfa.setEntryEdge(NfaEdge.emptyTo(nfa.getStates().get(0)));
-        nfa.setEndState(nfa.getStates().get(endState));
+        var end = nfa.getStates().get(endState);
+        end.setMatchedToken(233);
+        nfa.setEndState(end);
         return nfa;
     }
 

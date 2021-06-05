@@ -28,7 +28,10 @@ public class ThompsonRegexTranslator implements IRegexExprVisitor<NfaGraph> {
         result.setEndState(state);
         result.setEntryEdge(edge);
 
-        return null;
+        if (exprEmpty.getGroupId() != -1) {
+            result.getEndState().setMatchedToken(exprEmpty.getGroupId());
+        }
+        return result;
     }
 
     /**
@@ -56,6 +59,9 @@ public class ThompsonRegexTranslator implements IRegexExprVisitor<NfaGraph> {
         result.setEntryEdge(entryEdge);
         result.setEndState(endState);
 
+        if (exprChar.getGroupId() != -1) {
+            result.getEndState().setMatchedToken(exprChar.getGroupId());
+        }
         return result;
     }
 
@@ -94,6 +100,9 @@ public class ThompsonRegexTranslator implements IRegexExprVisitor<NfaGraph> {
         result.setEntryEdge(entryEdge);
         result.setEndState(curState);
 
+        if (exprString.getGroupId() != -1) {
+            result.getEndState().setMatchedToken(exprString.getGroupId());
+        }
         return result;
     }
 
@@ -117,6 +126,9 @@ public class ThompsonRegexTranslator implements IRegexExprVisitor<NfaGraph> {
         result.setEntryEdge(entryEdge);
         result.setEndState(endState);
 
+        if (exprKleeneStar.getGroupId() != -1) {
+            result.getEndState().setMatchedToken(exprKleeneStar.getGroupId());
+        }
         return result;
     }
 
@@ -138,6 +150,9 @@ public class ThompsonRegexTranslator implements IRegexExprVisitor<NfaGraph> {
         result.setEntryEdge(left.getEntryEdge());
         result.setEndState(right.getEndState());
 
+        if (exprConcatenation.getGroupId() != -1) {
+            result.getEndState().setMatchedToken(exprConcatenation.getGroupId());
+        }
         return result;
     }
 
@@ -170,6 +185,9 @@ public class ThompsonRegexTranslator implements IRegexExprVisitor<NfaGraph> {
         result.setEntryEdge(NfaEdge.emptyTo(startState));
         result.setEndState(endState);
 
+        if (exprAlternation.getGroupId() != -1) {
+            result.getEndState().setMatchedToken(exprAlternation.getGroupId());
+        }
         return result;
     }
 }

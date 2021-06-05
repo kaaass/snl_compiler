@@ -1,5 +1,6 @@
 package net.kaaass.snlc.lexer.regex;
 
+import lombok.Getter;
 import net.kaaass.snlc.lexer.ThompsonRegexTranslator;
 import net.kaaass.snlc.lexer.nfa.NfaGraph;
 
@@ -10,10 +11,21 @@ import net.kaaass.snlc.lexer.nfa.NfaGraph;
  */
 public abstract class RegexExpression {
 
+    @Getter
+    private int groupId = -1;
+
     /**
      * 接受访问者访问
      */
     public abstract <T> T accept(IRegexExprVisitor<T> visitor);
+
+    /**
+     * 设置匹配组
+     */
+    public RegexExpression group(int groupId) {
+        this.groupId = groupId;
+        return this;
+    }
 
     /**
      * 匹配单个字符

@@ -13,7 +13,7 @@ import java.util.Set;
  */
 @Getter
 @Setter
-@ToString(of = {"id"})
+@ToString(of = {"id", "matchedTokens"})
 @EqualsAndHashCode(of = {"parent", "id"})
 public class DfaState {
 
