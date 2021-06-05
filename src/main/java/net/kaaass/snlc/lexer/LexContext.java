@@ -1,11 +1,15 @@
 package net.kaaass.snlc.lexer;
 
 import lombok.AccessLevel;
+import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kaaass.snlc.lexer.dfa.DfaGraph;
 import net.kaaass.snlc.lexer.dfa.DfaSerializer;
+import net.kaaass.snlc.lexer.regex.RegexExpression;
 
+import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,24 +40,51 @@ public class LexContext<T> {
      * 编译匹配规则至 DFA 状态
      */
     public void compile() {
-        // TODO
+        if (tokens.isEmpty()) {
+            return;
+        }
+        // 第一步：组合正则
+        RegexExpression regex = null;
+        for (var token : tokens) {
+            var cur = token.getRegex();
+            // 设置匹配组
+            cur.group(token.getId());
+            // 组合正则
+            if (regex == null) {
+                regex = cur;
+            } else {
+                regex = RegexExpression.or(regex, cur);
+            }
+        }
+        // 第二步：转换 NFA
+        var nfa = regex.toNfa();
+        // 第三步：转换 DFA
+        var dfa = SubsetConstructAlgorithm.convert(nfa);
+        this.state = State.fromDfa(dfa);
     }
 
     /**
      * 可持久化状态，记录了 DFS 信息
      */
-    @Getter
+    @Data
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class State {
+    public static class State implements Serializable {
+
+        private static final long serialVersionUID = 2039325900482461802L;
+
         private final Map<Character, Integer> charMap;
 
         private final int[][] transMat;
 
         private final List<List<Integer>> tokenMat;
 
+        private transient WeakReference<DfaGraph> source = null;
+
         public static State fromDfa(DfaGraph dfa) {
-            var ret = DfaSerializer.serialize(dfa);
-            return new State(ret.getCharMap(), ret.getTransMat(), ret.getTokenMat());
+            var serializer = DfaSerializer.serialize(dfa);
+            var ret = new State(serializer.getCharMap(), serializer.getTransMat(), serializer.getTokenMat());
+            ret.source = new WeakReference<>(dfa);
+            return ret;
         }
     }
 }

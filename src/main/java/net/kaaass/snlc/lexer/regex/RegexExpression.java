@@ -4,6 +4,11 @@ import lombok.Getter;
 import net.kaaass.snlc.lexer.ThompsonRegexTranslator;
 import net.kaaass.snlc.lexer.nfa.NfaGraph;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * 正则表达式节点基类
  *
@@ -39,6 +44,24 @@ public abstract class RegexExpression {
      */
     public static RegexExpression range(char start, char end) {
         return new ExprCharSet(start, end);
+    }
+
+    /**
+     * 匹配字符集
+     */
+    public static RegexExpression charset(Set<Character> charSet) {
+        return new ExprCharSet(charSet);
+    }
+
+    /**
+     * 匹配字符集
+     */
+    public static RegexExpression charset(char ...chars) {
+        var set = new HashSet<Character>();
+        for (char chr : chars) {
+            set.add(chr);
+        }
+        return new ExprCharSet(set);
     }
 
     /**
