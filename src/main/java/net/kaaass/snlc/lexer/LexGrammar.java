@@ -2,7 +2,9 @@ package net.kaaass.snlc.lexer;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.kaaass.snlc.lexer.exception.UndefinedTokenException;
 import net.kaaass.snlc.lexer.regex.RegexExpression;
 
 import java.util.ArrayList;
@@ -31,7 +33,7 @@ public class LexGrammar<T> {
      * @param type Token 类型
      * @param literal 字面量
      */
-    public TokenInfo<T> defineToken(T type, String literal) {
+    public TokenInfo<T> defineToken(T type, @NonNull String literal) {
         var token = new LiteralTokenInfo<>(type, literal);
         context.addToken(token);
         return token;
@@ -46,6 +48,28 @@ public class LexGrammar<T> {
         var token = new TokenInfo<>(type, regex);
         context.addToken(token);
         return token;
+    }
+
+    /**
+     * 定义不具名正则匹配 token
+     * @param regex 正则
+     */
+    public TokenInfo<T> defineToken(RegexExpression regex) {
+        return defineToken(null, regex);
+    }
+
+    /**
+     * 声明 token，但不进行任何定义
+     */
+    public TokenInfo<T> declareToken(T type) {
+        return defineToken(type, (RegexExpression) null);
+    }
+
+    /**
+     * 通过 Token 类型找 Token
+     */
+    public TokenInfo<T> token(T type) throws UndefinedTokenException {
+        return this.context.getToken(type);
     }
 
     /**

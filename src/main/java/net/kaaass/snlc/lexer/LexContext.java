@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kaaass.snlc.lexer.dfa.DfaGraph;
 import net.kaaass.snlc.lexer.dfa.DfaSerializer;
+import net.kaaass.snlc.lexer.exception.UndefinedTokenException;
 import net.kaaass.snlc.lexer.regex.RegexExpression;
 
 import java.io.Serializable;
@@ -35,9 +36,12 @@ public class LexContext<T> {
     private State state = null;
 
     public void addToken(TokenInfo<T> token) {
-        token.setId(this.tokens.size());
+        // 非声明则生成 ID
+        if (!token.isDeclaration()) {
+            token.setId(this.tokens.size());
+            this.tokens.add(token);
+        }
         token.setParent(this);
-        this.tokens.add(token);
         this.tokenMap.put(token.getType(), token);
     }
 
@@ -45,8 +49,15 @@ public class LexContext<T> {
         return this.tokens.get(id);
     }
 
-    public TokenInfo<T> getToken(T type) {
-        return this.tokenMap.get(type);
+    public TokenInfo<T> getToken(T type) throws UndefinedTokenException {
+        if (type == null) {
+            throw new UndefinedTokenException();
+        }
+        var ret = this.tokenMap.get(type);
+        if (ret == null) {
+            throw new UndefinedTokenException(type);
+        }
+        return ret;
     }
 
     public boolean isDefaultContext() {

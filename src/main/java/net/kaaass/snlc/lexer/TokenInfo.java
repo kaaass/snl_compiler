@@ -56,6 +56,13 @@ public class TokenInfo<T> {
     }
 
     /**
+     * Token 是否仅是声明
+     */
+    public boolean isDeclaration() {
+        return this.regex == null;
+    }
+
+    /**
      * Token 匹配上下文。匹配执行动作的参数。
      */
     public abstract static class TokenContext<R> {
