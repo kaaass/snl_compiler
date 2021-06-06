@@ -59,6 +59,8 @@ public class SnlLexerFactory {
         put("..", UNDERANGE);
     }};
 
+    private final static String CTX_COMMENT = "comment";
+
     private static <T> void addSymbolByMap(LexGrammar<T> grammar, Map<String, T> map) {
         map.forEach((literal, token) -> grammar.defineToken(token, literal));
     }
@@ -86,9 +88,15 @@ public class SnlLexerFactory {
         // 定义特殊符号
         addSymbolByMap(g, specialSymbols);
 
-        // TODO 定义注释
-        g.defineToken(LANNOTATE, "{");
-        g.defineToken(RANNOTATE, "}");
+        // 定义注释环境
+        var comment = g.defineContext(CTX_COMMENT);
+
+        // 定义注释
+        g.defineToken(LCOMMENT, "{")
+                .action(ctx -> ctx.pushContext(CTX_COMMENT));
+        comment.defineToken(RCOMMENT, "}")
+                .action(ctx -> ctx.popContext());
+        comment.defineToken(COMMENT, anychar()).ignore();
 
         // 定义空白，并忽略
         g.defineToken(WHITESPACE, charset(' ', '\t', '\n')).ignore();

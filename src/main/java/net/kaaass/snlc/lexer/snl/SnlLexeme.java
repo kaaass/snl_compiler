@@ -26,7 +26,7 @@ public enum SnlLexeme {
     UNDERANGE,
 
     // 注释
-    LANNOTATE, RANNOTATE,
+    LCOMMENT, RCOMMENT, COMMENT,
 
     // 空白
     WHITESPACE,
