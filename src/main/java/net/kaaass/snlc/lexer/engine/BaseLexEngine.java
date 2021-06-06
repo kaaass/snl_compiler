@@ -7,8 +7,6 @@ import lombok.SneakyThrows;
 import net.kaaass.snlc.lexer.*;
 import net.kaaass.snlc.lexer.exception.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Stack;
 
 /**
@@ -42,7 +40,12 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
 
     @Override
     public TokenResult<T> readToken() throws LexParseException {
-        return readToken(this.currentContext);
+        var result = readToken(this.currentContext);
+        // 结束解析时上下文栈非空
+        if (this.stream.isEof() && this.contextStack.size() > 1) {
+            throw new ContextStackNonEmptyException();
+        }
+        return result;
     }
 
     /**
@@ -77,12 +80,12 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
                 matched = getMatchedString(endStreamState);
             }
             return ActionResult.accept(acceptToken(context,
-                    tokenInfo.getType(),
+                    tokenInfo,
                     matched));
         }
         // 否则调用 action
         // 准备上下文
-        var ctx = new DefaultTokenContext(context, tokenInfo.getType(), endStreamState);
+        var ctx = new DefaultTokenContext(tokenInfo.getType(), endStreamState);
         // 调用
         action.accept(ctx);
         // 返回结果
@@ -92,8 +95,8 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
     /**
      * 接受 Token
      */
-    protected TokenResult<T> acceptToken(LexContext<T> context, T type, String content) {
-        var token = new TokenResult<>(context.getToken(type));
+    protected TokenResult<T> acceptToken(LexContext<T> context, TokenInfo<T> type, String content) {
+        var token = new TokenResult<>(type);
         token.setToken(content);
         return token;
     }
@@ -132,15 +135,16 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
     @RequiredArgsConstructor
     public class DefaultTokenContext extends TokenInfo.TokenContext<T> {
 
-        private final LexContext<T> context;
         private final T curType;
         private final int endStreamState;
         private final ActionResult<T> result = new ActionResult<>();
 
+        @SneakyThrows
         @Override
         public void accept(T type, String content) {
+            var tokenInfo = BaseLexEngine.this.currentContext.getToken(type);
             this.result.setType(ActionResultType.ACCEPT);
-            this.result.setToken(acceptToken(context, type, content));
+            this.result.setToken(acceptToken(BaseLexEngine.this.currentContext, tokenInfo, content));
         }
 
         @Override
@@ -148,9 +152,10 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
             this.result.setType(ActionResultType.REJECT);
         }
 
+        @SneakyThrows
         @Override
         public TokenInfo<T> matchedType() {
-            return this.context.getToken(this.curType);
+            return BaseLexEngine.this.currentContext.getToken(this.curType);
         }
 
         @Override
