@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 词法分析上下文，包含对指定语法的真正分析
+ * 词法分析上下文，包含对指定语法的真正分析结构
  *
  * @author kaaass
  */
@@ -47,6 +47,10 @@ public class LexContext<T> {
 
     public TokenInfo<T> getToken(T type) {
         return this.tokenMap.get(type);
+    }
+
+    public boolean isDefaultContext() {
+        return DEFAULT.equals(this.name);
     }
 
     /**

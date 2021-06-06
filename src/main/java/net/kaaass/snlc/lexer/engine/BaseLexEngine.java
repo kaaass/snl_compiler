@@ -3,11 +3,13 @@ package net.kaaass.snlc.lexer.engine;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import net.kaaass.snlc.lexer.*;
-import net.kaaass.snlc.lexer.exception.LexParseException;
+import net.kaaass.snlc.lexer.exception.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * 词法匹配引擎基类
@@ -23,27 +25,24 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
 
     protected LexContext<T> currentContext = null;
 
+    protected Stack<LexContext<T>> contextStack = new Stack<>();
+
     /**
      * 初始化引擎以读入流
      */
     public void init(IRevertibleStream stream) {
         this.currentContext = lexer.getContexts().get(LexContext.DEFAULT);
         this.stream = stream;
+        // 初始化上下文栈
+        contextStack.clear();
+        contextStack.push(this.currentContext);
+        // 调用具体引擎初始化
         reset();
     }
 
     @Override
     public TokenResult<T> readToken() throws LexParseException {
         return readToken(this.currentContext);
-    }
-
-    public List<TokenResult<T>> readAllTokens() throws LexParseException {
-        var ret = new ArrayList<TokenResult<T>>();
-        TokenResult<T> token;
-        while ((token = readToken()) != null) {
-            ret.add(token);
-        }
-        return ret;
     }
 
     /**
@@ -107,6 +106,26 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
     }
 
     /**
+     * 将新上下文入栈
+     */
+    protected void pushContext(String contextName) throws UndefinedContextException {
+        var ctx = this.lexer.getContext(contextName);
+        this.currentContext = ctx;
+        this.contextStack.push(ctx);
+    }
+
+    /**
+     * 弹出上下文栈
+     */
+    protected void popContext() throws EmptyContextStackException {
+        if (this.contextStack.size() <= 1) {
+            throw new EmptyContextStackException();
+        }
+        this.contextStack.pop();
+        this.currentContext = this.contextStack.peek();
+    }
+
+    /**
      * Token 匹配上下文。匹配执行动作的参数。
      */
     @Getter
@@ -137,6 +156,27 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
         @Override
         public String matchedString() {
             return getMatchedString(this.endStreamState);
+        }
+
+        @SneakyThrows
+        @Override
+        public void pushContext(String contextName) {
+            try {
+                BaseLexEngine.this.pushContext(contextName);
+            } catch (UndefinedContextException e) {
+                throw new ParseTimeGrammarCheckException(e);
+            }
+        }
+
+        @SneakyThrows
+        @Override
+        public void popContext() {
+            BaseLexEngine.this.popContext();
+        }
+
+        @Override
+        public LexContext<T> currentContext() {
+            return currentContext;
         }
     }
 

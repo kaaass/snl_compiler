@@ -47,6 +47,13 @@ public abstract class RegexExpression {
     }
 
     /**
+     * 匹配任何字符
+     */
+    public static RegexExpression anychar() {
+        return range(Character.MIN_VALUE, '\u007F');
+    }
+
+    /**
      * 匹配字符集
      */
     public static RegexExpression charset(Set<Character> charSet) {

@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kaaass.snlc.lexer.regex.RegexExpression;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 词法分析语法定义，即词法分析器的建造者
  * @author kaaass
@@ -13,7 +16,15 @@ import net.kaaass.snlc.lexer.regex.RegexExpression;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class LexGrammar<T> {
 
+    /**
+     * 构造的词法上下文
+     */
     private final LexContext<T> context;
+
+    /**
+     * 子上下文
+     */
+    private final List<LexContext<T>> subContext = new ArrayList<>();
 
     /**
      * 定义字面量 token
@@ -35,6 +46,19 @@ public class LexGrammar<T> {
         var token = new TokenInfo<>(type, regex);
         context.addToken(token);
         return token;
+    }
+
+    /**
+     * 定义匹配上下文
+     * @param contextName 上下文名称
+     */
+    public LexGrammar<T> defineContext(String contextName) {
+        if (!this.context.isDefaultContext()) {
+            throw new UnsupportedOperationException("不支持嵌套子环境");
+        }
+        var ctx = new LexContext<T>(contextName);
+        this.subContext.add(ctx);
+        return new LexGrammar<>(ctx);
     }
 
     /**

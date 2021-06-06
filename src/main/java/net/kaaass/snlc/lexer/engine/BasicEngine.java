@@ -5,6 +5,7 @@ import net.kaaass.snlc.lexer.Lexer;
 import net.kaaass.snlc.lexer.TokenInfo;
 import net.kaaass.snlc.lexer.TokenResult;
 import net.kaaass.snlc.lexer.dfa.DfaState;
+import net.kaaass.snlc.lexer.exception.EofParseException;
 import net.kaaass.snlc.lexer.exception.LexParseException;
 import net.kaaass.snlc.lexer.exception.UnexpectedCharException;
 
@@ -70,19 +71,19 @@ public class BasicEngine<T> extends BaseLexEngine<T> {
                     return result.getToken();
                 case REJECT:
                     // 拒绝 Token，不支持
-                    throw new RuntimeException("引擎不支持拒绝操作！");
+                    throw new UnsupportedOperationException("引擎不支持拒绝操作！");
                 case NONE:
                 default:
                     // 不进行操作，确认之前内容后递归调用
                     this.stream.accept(lastSState);
                     this.stream.revert(lastSState);
-                    return readToken(context);
+                    return null;
             }
         }
-        // 如果不是 eof 报错
-        if (!eofFlag) {
-            throw new UnexpectedCharException(chr);
+        // 如果是 eof 报错
+        if (eofFlag) {
+            throw new EofParseException();
         }
-        return null;
+        throw new UnexpectedCharException(chr);
     }
 }

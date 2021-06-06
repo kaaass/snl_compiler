@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import net.kaaass.snlc.lexer.engine.BaseLexEngine;
+import net.kaaass.snlc.lexer.exception.EmptyContextStackException;
+import net.kaaass.snlc.lexer.exception.UndefinedContextException;
 import net.kaaass.snlc.lexer.regex.RegexExpression;
 
 import java.util.function.Consumer;
@@ -86,5 +88,23 @@ public class TokenInfo<T> {
          * 已匹配的内容
          */
         public abstract String matchedString();
+
+        /**
+         * 将新上下文入栈
+         * @param contextName 上下文名称
+         * @throws UndefinedContextException 对应上下文不存在
+         */
+        public abstract void pushContext(String contextName);
+
+        /**
+         * 弹出上下文栈
+         * @throws EmptyContextStackException 上下文已空
+         */
+        public abstract void popContext();
+
+        /**
+         * 当前上下文
+         */
+        public abstract LexContext<R> currentContext();
     }
 }
