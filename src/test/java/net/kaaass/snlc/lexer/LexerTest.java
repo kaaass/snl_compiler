@@ -7,6 +7,7 @@ import net.kaaass.snlc.lexer.exception.UndefinedTokenException;
 import net.kaaass.snlc.lexer.exception.UnexpectedCharException;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 import static net.kaaass.snlc.lexer.regex.RegexExpression.*;
 
@@ -100,6 +101,7 @@ public class LexerTest extends TestCase {
                     ctx.accept(Lang2.STRING, sb.toString());
                 });
         // 处理其他字符
+        string.defineToken(single('\n')).action(ctx -> ctx.fail(() -> new LexParseException("单行字符串")));
         string.defineToken(anychar()).action(ctx -> sb.append(ctx.matchedString()));
 
         g.defineToken(Lang2.WHITESPACE, charset(' ', '\n')).ignore();
@@ -129,6 +131,13 @@ public class LexerTest extends TestCase {
             fail();
         } catch (LexParseException e) {
             assertTrue(e instanceof ContextStackNonEmptyException);
+        }
+
+        try {
+            lexer.process("\"te\nst\"").readAllTokens();
+            fail();
+        } catch (LexParseException e) {
+            e.printStackTrace();
         }
 
         // Case 3: Unicode 转义

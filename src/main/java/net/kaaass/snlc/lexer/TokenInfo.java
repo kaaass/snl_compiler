@@ -5,10 +5,12 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import net.kaaass.snlc.lexer.engine.BaseLexEngine;
 import net.kaaass.snlc.lexer.exception.EmptyContextStackException;
+import net.kaaass.snlc.lexer.exception.LexParseException;
 import net.kaaass.snlc.lexer.exception.UndefinedContextException;
 import net.kaaass.snlc.lexer.regex.RegexExpression;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * 记录 token 定义
@@ -99,13 +101,11 @@ public class TokenInfo<T> {
         /**
          * 将新上下文入栈
          * @param contextName 上下文名称
-         * @throws UndefinedContextException 对应上下文不存在
          */
         public abstract void pushContext(String contextName);
 
         /**
          * 弹出上下文栈
-         * @throws EmptyContextStackException 上下文已空
          */
         public abstract void popContext();
 
@@ -113,5 +113,11 @@ public class TokenInfo<T> {
          * 当前上下文
          */
         public abstract LexContext<R> currentContext();
+
+        /**
+         * 匹配失败。该方法应视为会造成处理函数立刻退出。
+         * @param exceptionSupplier 提供匹配异常
+         */
+        public abstract void fail(Supplier<? extends LexParseException> exceptionSupplier);
     }
 }

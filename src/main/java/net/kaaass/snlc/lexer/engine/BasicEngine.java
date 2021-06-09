@@ -28,6 +28,7 @@ public class BasicEngine<T> extends BaseLexEngine<T> {
     protected TokenResult<T> readToken(LexContext<T> context) throws LexParseException {
         int initSState = this.stream.getState();
         int lastAccept = TokenInfo.DEAD, lastSState = -1;
+        int lastLine = -1, lastPos = -1;
         // 匹配
         var dfa = context.getState();
         int state = dfa.startState;
@@ -55,6 +56,8 @@ public class BasicEngine<T> extends BaseLexEngine<T> {
             if (matched != null && !matched.isEmpty()) {
                 lastAccept = matched.get(0);
                 lastSState = this.stream.getState();
+                lastLine = this.line;
+                lastPos = this.position;
             }
         }
         // 是否有匹配
@@ -68,6 +71,8 @@ public class BasicEngine<T> extends BaseLexEngine<T> {
                     // 接受 Token，确认之前内容后返回
                     this.stream.accept(lastSState);
                     this.stream.revert(lastSState);
+                    this.line = lastLine;
+                    this.position = lastPos;
                     return result.getToken();
                 case REJECT:
                     // 拒绝 Token，不支持
@@ -77,6 +82,8 @@ public class BasicEngine<T> extends BaseLexEngine<T> {
                     // 不进行操作，确认之前内容后递归调用
                     this.stream.accept(lastSState);
                     this.stream.revert(lastSState);
+                    this.line = lastLine;
+                    this.position = lastPos;
                     return null;
             }
         }
