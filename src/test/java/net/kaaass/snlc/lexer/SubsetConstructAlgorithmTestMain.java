@@ -2,21 +2,19 @@ package net.kaaass.snlc.lexer;
 
 import net.kaaass.snlc.lexer.dfa.DfaUtils;
 import net.kaaass.snlc.lexer.nfa.NfaEdge;
+import net.kaaass.snlc.lexer.nfa.NfaUtils;
 
 import java.util.List;
 
-import static net.kaaass.snlc.lexer.SubsetConstructAlgorithmTest.createNfa;
 import static net.kaaass.snlc.lexer.regex.RegexExpression.*;
 
 public class SubsetConstructAlgorithmTestMain {
-
-
 
     public static void main(String[] args) {
         // 0 -> 1 => 4
         // 0 -> 2 -> 3
         // 0 => 5
-        var nfa = createNfa(6, List.of(
+        var nfa = NfaUtils.createNfa(6, List.of(
                 List.of(0, 1, NfaEdge.EMPTY_CHAR),
                 List.of(0, 2, NfaEdge.EMPTY_CHAR),
                 List.of(0, 5, 'a'),
@@ -28,7 +26,7 @@ public class SubsetConstructAlgorithmTestMain {
 
         // 0 <-> 1 => 3 -> 0
         // 0 -> 2 -> 4 => 3
-        nfa = createNfa(5, List.of(
+        nfa = NfaUtils.createNfa(5, List.of(
                 List.of(0, 1, NfaEdge.EMPTY_CHAR),
                 List.of(0, 2, NfaEdge.EMPTY_CHAR),
                 List.of(1, 0, NfaEdge.EMPTY_CHAR),
@@ -42,7 +40,7 @@ public class SubsetConstructAlgorithmTestMain {
 
         // 0 -> 1 => 3 => 4 -> 0
         // 0 -> 2 => 4
-        nfa = createNfa(5, List.of(
+        nfa = NfaUtils.createNfa(5, List.of(
                 List.of(0, 1, NfaEdge.EMPTY_CHAR),
                 List.of(0, 2, NfaEdge.EMPTY_CHAR),
                 List.of(1, 3, 'a'),
