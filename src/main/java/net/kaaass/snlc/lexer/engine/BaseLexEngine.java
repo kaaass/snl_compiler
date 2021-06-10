@@ -89,7 +89,9 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
     /**
      * 处理单次匹配结果
      */
-    protected ActionResult<T> processMatchedToken(LexContext<T> context, int tokenId, int endStreamState) {
+    protected ActionResult<T> processMatchedToken(LexContext<T> context, MatchedInfo matchedInfo) {
+        var tokenId = matchedInfo.getAcceptedToken();
+        var endStreamState = matchedInfo.getStreamState();
         var tokenInfo = context.getToken(tokenId);
         var action = tokenInfo.getMatchedAction();
         // 如果没有设置动作，直接接受
@@ -148,6 +150,19 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
         }
         this.contextStack.pop();
         this.currentContext = this.contextStack.peek();
+    }
+
+    /**
+     * 创建匹配信息
+     * @param acceptedToken 当前匹配的 token 号
+     */
+    protected MatchedInfo createMatchedInfo(int acceptedToken) {
+        return new MatchedInfo(
+                acceptedToken,
+                this.stream.getState(),
+                this.line,
+                this.position
+        );
     }
 
     /**
@@ -240,6 +255,27 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
             ret.setType(ActionResultType.ACCEPT);
             ret.setToken(token);
             return ret;
+        }
+    }
+
+    /**
+     * 匹配信息
+     */
+    @Data
+    public class MatchedInfo {
+        private final int acceptedToken;
+        private final int streamState;
+        private final int line;
+        private final int position;
+
+        /**
+         * 以当前匹配信息确认
+         */
+        public void accept() {
+            BaseLexEngine.this.stream.accept(this.streamState);
+            BaseLexEngine.this.stream.revert(this.streamState);
+            BaseLexEngine.this.line = this.line;
+            BaseLexEngine.this.position = this.position;
         }
     }
 }

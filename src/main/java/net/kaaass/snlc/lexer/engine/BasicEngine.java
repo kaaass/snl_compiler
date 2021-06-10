@@ -2,7 +2,6 @@ package net.kaaass.snlc.lexer.engine;
 
 import net.kaaass.snlc.lexer.LexContext;
 import net.kaaass.snlc.lexer.Lexer;
-import net.kaaass.snlc.lexer.TokenInfo;
 import net.kaaass.snlc.lexer.TokenResult;
 import net.kaaass.snlc.lexer.dfa.DfaState;
 import net.kaaass.snlc.lexer.exception.EofParseException;
@@ -26,9 +25,8 @@ public class BasicEngine<T> extends BaseLexEngine<T> {
 
     @Override
     protected TokenResult<T> readToken(LexContext<T> context) throws LexParseException {
-        int initSState = this.stream.getState();
-        int lastAccept = TokenInfo.DEAD, lastSState = -1;
-        int lastLine = -1, lastPos = -1;
+        int initStreamState = this.stream.getState();
+        MatchedInfo matchedInfo = null;
         // 匹配
         var dfa = context.getState();
         int state = dfa.startState;
@@ -54,36 +52,27 @@ public class BasicEngine<T> extends BaseLexEngine<T> {
             // 检查匹配
             var matched = dfa.tokenMat.get(state);
             if (matched != null && !matched.isEmpty()) {
-                lastAccept = matched.get(0);
-                lastSState = this.stream.getState();
-                lastLine = this.line;
-                lastPos = this.position;
+                matchedInfo = createMatchedInfo(matched.get(0));
             }
         }
         // 是否有匹配
-        if (lastAccept != TokenInfo.DEAD) {
-            // 回退流
-            this.stream.revert(initSState);
+        if (matchedInfo != null) {
+            // 回退流到初始状态，用于获取匹配内容
+            this.stream.revert(initStreamState);
             // 产生 token
-            var result = processMatchedToken(context, lastAccept, lastSState);
+            var result = processMatchedToken(context, matchedInfo);
             switch (result.getType()) {
                 case ACCEPT:
-                    // 接受 Token，确认之前内容后返回
-                    this.stream.accept(lastSState);
-                    this.stream.revert(lastSState);
-                    this.line = lastLine;
-                    this.position = lastPos;
+                    // 接受 Token，确认之前匹配信息后返回
+                    matchedInfo.accept();
                     return result.getToken();
                 case REJECT:
                     // 拒绝 Token，不支持
                     throw new UnsupportedOperationException("引擎不支持拒绝操作！");
                 case NONE:
                 default:
-                    // 不进行操作，确认之前内容后递归调用
-                    this.stream.accept(lastSState);
-                    this.stream.revert(lastSState);
-                    this.line = lastLine;
-                    this.position = lastPos;
+                    // 不进行操作，确认之前匹配信息
+                    matchedInfo.accept();
                     return null;
             }
         }
