@@ -1,10 +1,8 @@
 package net.kaaass.snlc.lexer;
 
 import junit.framework.TestCase;
-import net.kaaass.snlc.lexer.exception.ContextStackNonEmptyException;
-import net.kaaass.snlc.lexer.exception.LexParseException;
-import net.kaaass.snlc.lexer.exception.UndefinedTokenException;
-import net.kaaass.snlc.lexer.exception.UnexpectedCharException;
+import net.kaaass.snlc.lexer.dfa.DfaUtils;
+import net.kaaass.snlc.lexer.exception.*;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -17,7 +15,7 @@ public class LexerTest extends TestCase {
         WHITESPACE, ALPHABET, DIGIT, IF, AS
     }
 
-    public void testBasic() throws LexParseException, UndefinedTokenException {
+    public void testBasic() throws LexParseException, UndefinedTokenException, UndefinedContextException {
         var g = LexGrammar.<Lang1>create();
         g.defineToken(Lang1.DIGIT, range('0', '1').oneOrMany());
         g.defineToken(Lang1.IF, "if");
@@ -37,6 +35,8 @@ public class LexerTest extends TestCase {
         expected.add(new TokenResult<>(g.token(Lang1.DIGIT), "0"));
         expected.add(new TokenResult<>(g.token(Lang1.WHITESPACE), " "));
         expected.add(new TokenResult<>(g.token(Lang1.IF), "if"));
+
+        DfaUtils.printGraph(lexer.getContext("DEFAULT").getState().getSource().get());
 
         assertEquals(expected, result);
 

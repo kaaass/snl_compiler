@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kaaass.snlc.lexer.dfa.DfaGraph;
 import net.kaaass.snlc.lexer.dfa.DfaSerializer;
+import net.kaaass.snlc.lexer.dfa.DfaSimplifier;
 import net.kaaass.snlc.lexer.exception.UndefinedTokenException;
 
 import java.io.Serializable;
@@ -79,6 +80,8 @@ public class LexContext<T> {
         var nfa = (new GlushkovRegexTranslator()).translateRegexes(regexes);
         // 第三步：转换 DFA
         var dfa = SubsetConstructAlgorithm.convert(nfa);
+        // 第四步：化简 DFA 状态
+        dfa = DfaSimplifier.run(dfa);
         this.state = State.fromDfa(dfa);
     }
 
