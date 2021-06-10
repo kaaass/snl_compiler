@@ -102,7 +102,7 @@ public class LexContext<T> {
         private transient WeakReference<DfaGraph> source = null;
 
         public static State fromDfa(DfaGraph dfa) {
-            var serializer = DfaSerializer.serialize(dfa);
+            var serializer = DfaSerializer.on(dfa);
             var ret = new State(serializer.getCharMap(),
                     serializer.getTransMat(),
                     serializer.getTokenMat(),

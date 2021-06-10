@@ -1,18 +1,26 @@
 package net.kaaass.snlc.lexer.dfa;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.util.*;
 
 /**
  * 序列化 DFA
+ *
  * @author kaaass
  */
 @Getter
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class DfaSerializer {
+
+    public static final int CHAR_MAP = 0x01;
+
+    private static final int TRANS_ONLY = 0x02;
+
+    public static final int TRANS = TRANS_ONLY | CHAR_MAP;
+
+    public static final int TOKEN_MAT = 0x04;
+
+    public static final int ALL = 0xff;
 
     private Map<Character, Integer> charMap = null;
 
@@ -22,10 +30,23 @@ public class DfaSerializer {
 
     private final DfaGraph dfa;
 
+    private final int needed;
+
+    public DfaSerializer(DfaGraph dfa, int needed) {
+        this.dfa = dfa;
+        this.needed = needed;
+    }
+
     private void run() {
-        runCharMap();
-        runTransMat();
-        runTokenMat();
+        if ((this.needed & CHAR_MAP) == CHAR_MAP) {
+            runCharMap();
+        }
+        if ((this.needed & TRANS) == TRANS) {
+            runTransMat();
+        }
+        if ((this.needed & TOKEN_MAT) == TOKEN_MAT) {
+            runTokenMat();
+        }
     }
 
     private void runCharMap() {
@@ -60,8 +81,12 @@ public class DfaSerializer {
         }
     }
 
-    public static DfaSerializer serialize(DfaGraph dfa) {
-        var ret = new DfaSerializer(dfa);
+    public static DfaSerializer on(DfaGraph dfa) {
+        return on(dfa, ALL);
+    }
+
+    public static DfaSerializer on(DfaGraph dfa, int needed) {
+        var ret = new DfaSerializer(dfa, needed);
         ret.run();
         return ret;
     }
