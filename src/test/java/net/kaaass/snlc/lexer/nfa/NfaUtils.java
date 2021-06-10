@@ -36,7 +36,7 @@ public class NfaUtils {
 
     public static void printGraph(NfaGraph graph) {
         System.out.println("Start state: " + graph.getStartState().getId());
-        System.out.println("End state: " + graph.getEndState().getId());
+        if (graph.getEndState() != null) System.out.println("End state: " + graph.getEndState().getId());
         graph.getStates().forEach(state -> {
             var from = state.getId();
             state.getNextEdges().forEach(edge -> {

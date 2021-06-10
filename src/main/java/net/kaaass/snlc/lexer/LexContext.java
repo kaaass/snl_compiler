@@ -76,7 +76,7 @@ public class LexContext<T> {
                 .map(info -> info.getRegex().group(info.getId()))
                 .collect(Collectors.toList());
         // 第二步：转换 NFA
-        var nfa = ThompsonRegexTranslator.translateRegexes(regexes);
+        var nfa = (new GlushkovRegexTranslator()).translateRegexes(regexes);
         // 第三步：转换 DFA
         var dfa = SubsetConstructAlgorithm.convert(nfa);
         this.state = State.fromDfa(dfa);
