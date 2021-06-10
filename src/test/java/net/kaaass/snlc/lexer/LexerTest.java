@@ -2,10 +2,12 @@ package net.kaaass.snlc.lexer;
 
 import junit.framework.TestCase;
 import net.kaaass.snlc.lexer.dfa.DfaUtils;
-import net.kaaass.snlc.lexer.exception.*;
+import net.kaaass.snlc.lexer.exception.ContextStackNonEmptyException;
+import net.kaaass.snlc.lexer.exception.LexParseException;
+import net.kaaass.snlc.lexer.exception.UndefinedContextException;
+import net.kaaass.snlc.lexer.exception.UndefinedTokenException;
 
 import java.util.ArrayList;
-import java.util.Optional;
 
 import static net.kaaass.snlc.lexer.regex.RegexExpression.*;
 
@@ -146,6 +148,28 @@ public class LexerTest extends TestCase {
 
         expected = new ArrayList<>();
         expected.add(new TokenResult<>(g.token(Lang2.STRING), "test\u0065"));
+
+        assertEquals(expected, result);
+    }
+
+    public void testReject() throws LexParseException, UndefinedTokenException, UndefinedContextException {
+        var g = LexGrammar.<Lang1>create();
+        g.defineToken(Lang1.DIGIT, range('0', '1').oneOrMany());
+        g.defineToken(Lang1.IF, "if").action(ctx -> ctx.reject());
+        g.defineToken(Lang1.ALPHABET, or(range('a', 'z'), range('A', 'Z')).oneOrMany());
+        g.defineToken(Lang1.AS, "as");
+        g.defineToken(Lang1.WHITESPACE, charset(' ', '\n'));
+
+        var lexer = g.compile();
+
+        // 同长情况优先先定义的，此处拒绝了一次，所以变为 ALPHABET
+        var engine = lexer.process("if as");
+        var result = engine.readAllTokens();
+
+        var expected = new ArrayList<>();
+        expected.add(new TokenResult<>(g.token(Lang1.ALPHABET), "if"));
+        expected.add(new TokenResult<>(g.token(Lang1.WHITESPACE), " "));
+        expected.add(new TokenResult<>(g.token(Lang1.ALPHABET), "as"));
 
         assertEquals(expected, result);
     }

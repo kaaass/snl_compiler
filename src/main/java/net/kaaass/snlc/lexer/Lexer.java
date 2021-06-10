@@ -5,8 +5,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.kaaass.snlc.lexer.engine.BaseLexEngine;
-import net.kaaass.snlc.lexer.engine.BasicEngine;
 import net.kaaass.snlc.lexer.engine.IRevertibleStream;
+import net.kaaass.snlc.lexer.engine.StackedEngine;
 import net.kaaass.snlc.lexer.engine.StringStream;
 import net.kaaass.snlc.lexer.exception.UndefinedContextException;
 
@@ -34,7 +34,7 @@ public class Lexer<T> {
         // 编译所有上下文
         contexts.values().forEach(LexContext::compile);
         // 创建引擎
-        this.engine = new BasicEngine<>(this);
+        this.engine = new StackedEngine<>(this);
     }
 
     /**
