@@ -1,14 +1,13 @@
 package net.kaaass.snlc.lexer.regex;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 /**
  * Kleene * 正则表达式
  * @author kaaass
  */
-@Data
+@Getter
+@Setter
 @EqualsAndHashCode(callSuper = false)
 @RequiredArgsConstructor
 public class ExprKleeneStar extends RegexExpression {
@@ -18,5 +17,10 @@ public class ExprKleeneStar extends RegexExpression {
     @Override
     public <T> T accept(IRegexExprVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public String friendlyString() {
+        return String.format("(%s)*", innerRegex.friendlyString());
     }
 }

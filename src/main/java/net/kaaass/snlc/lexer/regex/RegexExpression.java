@@ -4,8 +4,6 @@ import lombok.Getter;
 import net.kaaass.snlc.lexer.ThompsonRegexTranslator;
 import net.kaaass.snlc.lexer.nfa.NfaGraph;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -115,5 +113,12 @@ public abstract class RegexExpression {
 
     public NfaGraph toNfa() {
         return accept(ThompsonRegexTranslator.INSTANCE);
+    }
+
+    public abstract String friendlyString();
+
+    @Override
+    public String toString() {
+        return String.format("Regex[ %s ]", friendlyString());
     }
 }
