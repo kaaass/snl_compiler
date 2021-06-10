@@ -5,6 +5,8 @@ import net.kaaass.snlc.lexer.nfa.NfaGraph;
 import net.kaaass.snlc.lexer.nfa.NfaState;
 import net.kaaass.snlc.lexer.regex.*;
 
+import java.util.List;
+
 /**
  * 使用 Thompson 构造法将正则表达式转为 NFA。对部分构造方式进行了优化。
  * @author kaaass
@@ -189,5 +191,23 @@ public class ThompsonRegexTranslator implements IRegexExprVisitor<NfaGraph> {
             result.getEndState().setMatchedToken(exprAlternation.getGroupId());
         }
         return result;
+    }
+
+    /**
+     * 翻译若干正则表达式（或关系）
+     */
+    public static NfaGraph translateRegexes(List<RegexExpression> regexes) {
+        // 合并正则
+        RegexExpression regex = null;
+        for (var cur : regexes) {
+            if (regex == null) {
+                regex = cur;
+            } else {
+                regex = RegexExpression.or(regex, cur);
+            }
+        }
+        // 转换结果
+        assert regex != null;
+        return regex.accept(INSTANCE);
     }
 }
