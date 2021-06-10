@@ -33,7 +33,7 @@ public interface IRevertibleStream {
      */
     boolean isEof();
 
-    default String readUtilState(int state) {
+    default String readUntilState(int state) {
         StringBuilder sb = new StringBuilder();
         while (getState() != state) {
             sb.append(read());

@@ -105,7 +105,7 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
      * 获得匹配 token 的字符串
      */
     protected String getMatchedString(int endStreamState) {
-        return this.stream.readUtilState(endStreamState);
+        return this.stream.readUntilState(endStreamState);
     }
 
     /**
