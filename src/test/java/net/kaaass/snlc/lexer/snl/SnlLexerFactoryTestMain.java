@@ -1,11 +1,22 @@
 package net.kaaass.snlc.lexer.snl;
 
 import net.kaaass.snlc.lexer.Lexer;
+import net.kaaass.snlc.lexer.dfa.DfaUtils;
 import net.kaaass.snlc.lexer.exception.LexParseException;
 
 public class SnlLexerFactoryTestMain {
 
     public static final Lexer<SnlLexeme> lexer = SnlLexerFactory.create();
+
+    public static void printDfa() {
+        for (var ctx : lexer.getContexts().values()) {
+            System.out.println("Context: " + ctx.getName());
+            var dfa = ctx.getState().getSource().get();
+            if (dfa != null) {
+                DfaUtils.printGraph(dfa);
+            }
+        }
+    }
 
     public static void simple1() {
         String code = "program p\n" +
@@ -66,6 +77,8 @@ public class SnlLexerFactoryTestMain {
     }
 
     public static void main(String[] args) {
+        printDfa();
+
         simple1();
 
         comment1();
