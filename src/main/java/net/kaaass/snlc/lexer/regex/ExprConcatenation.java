@@ -25,4 +25,9 @@ public class ExprConcatenation extends RegexExpression {
     public String friendlyString() {
         return String.format("%s %s", leftRegex.friendlyString(), rightRegex.friendlyString());
     }
+
+    @Override
+    public RegexExpression deepCopy() {
+        return new ExprConcatenation(this.leftRegex.deepCopy(), this.rightRegex.deepCopy());
+    }
 }

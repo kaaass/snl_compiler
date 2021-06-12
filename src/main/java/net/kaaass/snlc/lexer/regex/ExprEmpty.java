@@ -21,4 +21,9 @@ public class ExprEmpty extends RegexExpression {
     public String friendlyString() {
         return "ε";
     }
+
+    @Override
+    public RegexExpression deepCopy() {
+        return new ExprEmpty();
+    }
 }

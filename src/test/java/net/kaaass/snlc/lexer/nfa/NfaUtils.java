@@ -37,11 +37,10 @@ public class NfaUtils {
     public static void printGraph(NfaGraph graph) {
         System.out.println("Start state: " + graph.getStartState().getId());
         if (graph.getEndState() != null) System.out.println("End state: " + graph.getEndState().getId());
-        graph.getStates().forEach(state -> {
-            var from = state.getId();
-            state.getNextEdges().forEach(edge -> {
-                var to = edge.getNextState().getId();
-                System.out.printf("%d --%c--> %d\n", from, edge.getMatchChar(), to);
+        graph.getStates().forEach(from -> {
+            from.getNextEdges().forEach(edge -> {
+                var to = edge.getNextState();
+                System.out.printf("%s --%c--> %s\n", from, edge.getMatchChar(), to);
             });
         });
     }

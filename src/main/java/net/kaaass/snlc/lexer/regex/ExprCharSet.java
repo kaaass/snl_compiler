@@ -31,9 +31,19 @@ public class ExprCharSet extends RegexExpression {
 
     @Override
     public String friendlyString() {
-        var ret = new StringBuilder("[");
+        var ret = new StringBuilder();
+        if (charSet.size() > 1) {
+            ret.append('[');
+        }
         charSet.forEach(ret::append);
-        ret.append(']');
+        if (charSet.size() > 1) {
+            ret.append(']');
+        }
         return ret.toString();
+    }
+
+    @Override
+    public RegexExpression deepCopy() {
+        return new ExprCharSet(this.charSet);
     }
 }

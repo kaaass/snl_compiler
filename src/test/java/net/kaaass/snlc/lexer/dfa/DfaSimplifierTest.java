@@ -1,7 +1,11 @@
 package net.kaaass.snlc.lexer.dfa;
 
 import junit.framework.TestCase;
+import net.kaaass.snlc.lexer.GlushkovRegexTranslator;
+import net.kaaass.snlc.lexer.LexGrammar;
 import net.kaaass.snlc.lexer.SubsetConstructAlgorithm;
+import net.kaaass.snlc.lexer.exception.LexParseException;
+import net.kaaass.snlc.lexer.nfa.NfaUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -60,5 +64,46 @@ public class DfaSimplifierTest extends TestCase {
         System.out.println("After simplify: ");
         var result = DfaSimplifier.run(dfa);
         DfaUtils.printGraph(result);
+    }
+
+    public void testSimplify2() {
+        // (ab)+
+        var regex = string("ab").oneOrMany();
+        var nfa = regex.toNfa();
+        var dfa = SubsetConstructAlgorithm.convert(nfa);
+
+        System.out.println("Before simplify: ");
+        DfaUtils.printGraph(dfa);
+
+        System.out.println("After simplify: ");
+        var result = DfaSimplifier.run(dfa);
+        DfaUtils.printGraph(result);
+    }
+
+    public void testSimplify3() throws LexParseException {
+        // (a+b*|ac*|abc)+
+        var regex = or(
+                concat(single('a').oneOrMany(), single('b').many()),
+                or(concat(single('a'), single('c').many()),
+                        string("abc"))).oneOrMany().group(0);
+
+        System.out.println(regex);
+
+        var nfa = new GlushkovRegexTranslator().translateRegex(regex);
+
+        NfaUtils.printGraph(nfa);
+
+        var dfa = SubsetConstructAlgorithm.convert(nfa);
+
+        System.out.println("Before simplify: ");
+        DfaUtils.printGraph(dfa);
+
+        System.out.println("After simplify: ");
+        var result = DfaSimplifier.run(dfa);
+        DfaUtils.printGraph(result);
+
+        var g = LexGrammar.<String>create();
+        g.defineToken("<>", regex);
+        System.out.println(g.compile().process("abc").readToken());;
     }
 }

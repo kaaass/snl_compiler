@@ -80,35 +80,35 @@ public abstract class RegexExpression {
      * 顺序匹配表达式
      */
     public static RegexExpression concat(RegexExpression left, RegexExpression right) {
-        return new ExprConcatenation(left, right);
+        return new ExprConcatenation(left.deepCopy(), right.deepCopy());
     }
 
     /**
      * 匹配其中一个表达式
      */
     public static RegexExpression or(RegexExpression left, RegexExpression right) {
-        return new ExprAlternation(left, right);
+        return new ExprAlternation(left.deepCopy(), right.deepCopy());
     }
 
     /**
      * 匹配重复 0 至多次
      */
     public RegexExpression many() {
-        return new ExprKleeneStar(this);
+        return new ExprKleeneStar(this.deepCopy());
     }
 
     /**
      * 匹配重复 1 至多次
      */
     public RegexExpression oneOrMany() {
-        return concat(this, this.many());
+        return concat(this.deepCopy(), this.many().deepCopy());
     }
 
     /**
      * 匹配 0 或 1 次
      */
     public RegexExpression zeroOrOne() {
-        return or(this, new ExprEmpty());
+        return or(this.deepCopy(), new ExprEmpty());
     }
 
     public NfaGraph toNfa() {
@@ -121,4 +121,6 @@ public abstract class RegexExpression {
     public String toString() {
         return String.format("Regex[ %s ]", friendlyString());
     }
+
+    public abstract RegexExpression deepCopy();
 }

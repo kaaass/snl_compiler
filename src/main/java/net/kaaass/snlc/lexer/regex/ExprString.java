@@ -23,4 +23,9 @@ public class ExprString extends RegexExpression {
     public String friendlyString() {
         return this.stringLiteral;
     }
+
+    @Override
+    public RegexExpression deepCopy() {
+        return new ExprString(this.stringLiteral);
+    }
 }

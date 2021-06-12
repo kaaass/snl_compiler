@@ -21,6 +21,12 @@ public class ExprKleeneStar extends RegexExpression {
 
     @Override
     public String friendlyString() {
-        return String.format("(%s)*", innerRegex.friendlyString());
+        var inner = innerRegex.friendlyString();
+        return String.format(inner.length() > 1 ? "(%s)*": "%s*", inner);
+    }
+
+    @Override
+    public RegexExpression deepCopy() {
+        return new ExprKleeneStar(this.innerRegex.deepCopy());
     }
 }

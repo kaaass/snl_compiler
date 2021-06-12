@@ -23,6 +23,11 @@ public class ExprAlternation extends RegexExpression {
 
     @Override
     public String friendlyString() {
-        return String.format("%s | %s", leftRegex.friendlyString(), rightRegex.friendlyString());
+        return String.format("(%s | %s)", leftRegex.friendlyString(), rightRegex.friendlyString());
+    }
+
+    @Override
+    public RegexExpression deepCopy() {
+        return new ExprAlternation(this.leftRegex.deepCopy(), this.rightRegex.deepCopy());
     }
 }
