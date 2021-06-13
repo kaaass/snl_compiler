@@ -6,24 +6,32 @@ import net.kaaass.snlc.lexer.exception.LexParseException;
 import net.kaaass.snlc.lexer.snl.SnlLexeme;
 import net.kaaass.snlc.lexer.snl.SnlLexerFactory;
 import net.kaaass.snlc.parser.exception.TokenNotMatchException;
+import net.kaaass.snlc.parser.exception.TreeNodeException;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Objects;
 
 public class ParserTest extends TestCase {
 
     public static final Lexer<SnlLexeme> lexer = SnlLexerFactory.create();
 
-    public void testHello() throws LexParseException, TokenNotMatchException {
-        String code = "program p\n" +
-                "\ttype t = integer;\n" +
-                "\tvar t v1;\n" +
-                "\tchar v2;\n" +
-                "begin\n" +
-                "\tread(v1);\n" +
-                "\tv1:=v1+10;\n" +
-                "\twrite(v1)\n" +
-                "end\n";
+    public void testAst() throws LexParseException, TokenNotMatchException, TreeNodeException, IOException {
+
+        ClassLoader classLoader = this.getClass().getClassLoader();
+        var codePath = Objects.requireNonNull(classLoader.getResource("example.snl")).getPath();
+        var astPath = Objects.requireNonNull(classLoader.getResource("ast.txt")).getPath();
+        String code = Files.readString(Path.of(codePath));
+        String astRes = Files.readString(Path.of(astPath));
 
         var engine = lexer.process(code);
         var parser = Parser.of(engine.readAllTokens());
-        assertNull(parser.getAst());
+        var ast = parser.getAst();
+        ast.print();
+
+        assertEquals(astRes, ast.printString());
     }
+
+
 }

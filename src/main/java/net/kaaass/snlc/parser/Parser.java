@@ -7,14 +7,13 @@ import net.kaaass.snlc.ast.ExpType;
 import net.kaaass.snlc.ast.Kind;
 import net.kaaass.snlc.ast.NodeKind;
 import net.kaaass.snlc.ast.TreeNode;
-import net.kaaass.snlc.ast.attr.ArrayAttr;
-import net.kaaass.snlc.ast.attr.ExprAttr;
-import net.kaaass.snlc.ast.attr.VarKind;
+import net.kaaass.snlc.ast.attr.*;
 import net.kaaass.snlc.lexer.TokenResult;
 import net.kaaass.snlc.lexer.snl.SnlLexeme;
 import net.kaaass.snlc.parser.exception.TokenNotMatchException;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Parser for SNL
@@ -46,7 +45,7 @@ public class Parser {
         ProgramHead(root);
         DeclarePart(root);
         ProgramBody(root);
-
+        tokens.match(SnlLexeme.DOT);
         return root;
     }
 
@@ -91,7 +90,7 @@ public class Parser {
     public void TypeDecList(TreeNode parent) throws TokenNotMatchException {
         TypeId(parent);
         tokens.match(SnlLexeme.EQ);
-        TypeDef(parent);
+        TypeDef(parent, false);
         tokens.match(SnlLexeme.SEMI);
         TypeDecMore(parent.getParent());
     }
@@ -113,15 +112,20 @@ public class Parser {
         parent.getName().add(typeid.getToken());
     }
 
-    public void TypeDef(TreeNode parent) throws TokenNotMatchException {
+    public void TypeDef(TreeNode parent, boolean proc) throws TokenNotMatchException {
         if (tokens.current() == SnlLexeme.INTEGER || tokens.current() == SnlLexeme.CHAR) {
             parent.setKind(BaseType());
+            if (proc)
+                parent.setAttr(new ProcAttr(Paramt.ValParamType));
         } else if (tokens.current() == SnlLexeme.ARRAY || tokens.current() == SnlLexeme.RECORD) {
+            if (proc)
+                parent.setAttr(new ProcAttr(Paramt.VarParamType));
             StructureType(parent);
         } else if (tokens.current() == SnlLexeme.ID) {
             tokens.match(SnlLexeme.ID);
-
             parent.setKind(Kind.IdK);
+            if (proc)
+                parent.setAttr(new ProcAttr(Paramt.VarParamType));
         } else {
             throw new TokenNotMatchException();
         }
@@ -247,7 +251,7 @@ public class Parser {
     }
 
     public void VarDecList(TreeNode parent) throws TokenNotMatchException {
-        TypeDef(parent);
+        TypeDef(parent, false);
         VarIdList(parent);
         tokens.match(SnlLexeme.SEMI);
         VarDecMore(parent);
@@ -350,12 +354,12 @@ public class Parser {
 
         if (tokens.current() == SnlLexeme.INTEGER || tokens.current() == SnlLexeme.CHAR || tokens.current() == SnlLexeme.ARRAY || tokens.current() == SnlLexeme.RECORD || tokens.current() == SnlLexeme.ID ) {
             var cur = TreeNode.ofParent(parent, NodeKind.DecK);
-            TypeDef(cur);
+            TypeDef(cur, true);
             FormList(cur);
         } else if (tokens.current() == SnlLexeme.VAR) {
             var cur = TreeNode.ofParent(parent, NodeKind.VarK);
             tokens.match(SnlLexeme.VAR);
-            TypeDef(cur);
+            TypeDef(cur, true);
             FormList(cur);
         } else {
             throw new TokenNotMatchException();
@@ -380,8 +384,7 @@ public class Parser {
     }
 
     public void ProcDecPart(TreeNode parent) throws TokenNotMatchException {
-        var cur = TreeNode.ofParent(parent, NodeKind.ProcDecK);
-        DeclarePart(cur);
+        DeclarePart(parent);
     }
 
     public void ProcBody(TreeNode parent) throws TokenNotMatchException {
@@ -441,8 +444,8 @@ public class Parser {
 
         if (tokens.current() == SnlLexeme.ASSIGN || tokens.current() == SnlLexeme.DOT || tokens.current() == SnlLexeme.LMIDPAREN) {
             parent.setKind(Kind.AssignK);
-            var exp2 = TreeNode.ofParent(parent, NodeKind.ExpK);
-            AssignmentRest(exp1, exp2);
+            var exp2 = AssignmentRest(exp1);
+            parent.addChild(exp2);
         } else if (tokens.current() == SnlLexeme.LPAREN) {
             parent.setKind(Kind.CallK);
             CallStmRest(parent);
@@ -451,10 +454,11 @@ public class Parser {
         }
     }
 
-    public void AssignmentRest(TreeNode exp1, TreeNode exp2) throws TokenNotMatchException {
+    public TreeNode AssignmentRest(TreeNode exp1) throws TokenNotMatchException {
         VariMore(exp1);
         tokens.match(SnlLexeme.ASSIGN);
-        Exp(exp2);
+        return Exp();
+
     }
 
     public void ConditionalStm(TreeNode parent) throws TokenNotMatchException {
@@ -494,8 +498,9 @@ public class Parser {
         parent.setKind(Kind.WriteK);
         tokens.match(SnlLexeme.WRITE);
         tokens.match(SnlLexeme.LPAREN);
-        var exp = TreeNode.ofParent(parent, NodeKind.ExpK);
-        Exp(exp);
+        var exp = Exp();
+        exp.setNodeK(NodeKind.ExpK);
+        parent.addChild(exp);
         tokens.match(SnlLexeme.RPAREN);
     }
 
@@ -514,8 +519,9 @@ public class Parser {
         if (tokens.current() == SnlLexeme.RPAREN) {
             // pass
         } else if (tokens.current() == SnlLexeme.LPAREN || tokens.current() == SnlLexeme.INTC || tokens.current() == SnlLexeme.ID) {
-            var exp = TreeNode.ofParent(parent, NodeKind.ExpK);
-            Exp(exp);
+            var exp = Exp();
+            exp.setNodeK(NodeKind.ExpK);
+            parent.addChild(exp);
             ActParamMore(parent);
         } else {
             throw new TokenNotMatchException();
@@ -534,67 +540,107 @@ public class Parser {
     }
 
     public void RelExp(TreeNode parent) throws TokenNotMatchException {
-        var relExp = TreeNode.ofParent(parent, NodeKind.ExpK);
-        var exp1 = TreeNode.ofParent(relExp, NodeKind.ExpK);
-        Exp(exp1);
-        OtherRelE(relExp);
+        var exp1 = Exp();
+        exp1.setNodeK(NodeKind.ExpK);
+        var exp2 = OtherRelE();
+        exp2.getChild().add(0, exp1);
+
+        parent.addChild(exp2);
     }
 
-    public void OtherRelE(TreeNode parent) throws TokenNotMatchException {
-        CmpOp(parent);
+    public TreeNode OtherRelE() throws TokenNotMatchException {
+        var cmpNode = CmpOp();
 
-        var exp2 = TreeNode.ofParent(parent, NodeKind.ExpK);
-        Exp(exp2);
+        var exp2 = Exp();
+        cmpNode.addChild(exp2);
+
+        return cmpNode;
     }
 
-    public void Exp(TreeNode exp) throws TokenNotMatchException {
-        var exp1 = TreeNode.ofParent(exp, NodeKind.ExpK);
-        Term(exp1);
-        OtherTerm(exp);
+    public TreeNode Exp() throws TokenNotMatchException {
+        var exp1 = Term();
+        var exp2 = OtherTerm();
+
+        if (exp2.isEmpty()) {
+            return exp1;
+        } else {
+            var ret = exp2.get();
+            ret.getChild().add(0, exp1);
+
+            return ret;
+        }
     }
 
-    public void OtherTerm(TreeNode exp) throws TokenNotMatchException {
+    public Optional<TreeNode> OtherTerm() throws TokenNotMatchException {
         if (tokens.current() == SnlLexeme.LT || tokens.current() == SnlLexeme.EQ || tokens.current() == SnlLexeme.RMIDPAREN || tokens.current() == SnlLexeme.THEN || tokens.current() == SnlLexeme.ELSE || tokens.current() == SnlLexeme.FI || tokens.current() == SnlLexeme.DO || tokens.current() == SnlLexeme.ENDWH || tokens.current() == SnlLexeme.RPAREN || tokens.current() == SnlLexeme.END || tokens.current() == SnlLexeme.SEMI || tokens.current() == SnlLexeme.COMMA) {
-            // pass
+            return Optional.empty();
         } else if (tokens.current() == SnlLexeme.PLUS || tokens.current() == SnlLexeme.MINUS) {
+
+            var exp = new TreeNode();
+            exp.setNodeK(NodeKind.ExpK);
+
             AddOp(exp);
-            var exp2 = TreeNode.ofParent(exp, NodeKind.ExpK);
-            Exp(exp2);
+
+            var exp2 = Exp();
+            exp.addChild(exp2);
+
+            return Optional.of(exp);
         } else {
             throw new TokenNotMatchException();
         }
     }
 
-    public void Term(TreeNode exp) throws TokenNotMatchException {
-        var exp1 = TreeNode.ofParent(exp, NodeKind.ExpK);
-        Factor(exp1);
-        OtherFactor(exp);
+    public TreeNode Term() throws TokenNotMatchException {
+        var exp1 = Factor();
+        var exp2 = OtherFactor();
+
+        if (exp2.isEmpty()) {
+            return exp1;
+        } else {
+            var ret = exp2.get();
+            ret.getChild().add(0, exp1);
+            return ret;
+        }
     }
 
-    public void OtherFactor(TreeNode exp) throws TokenNotMatchException {
+    public Optional<TreeNode> OtherFactor() throws TokenNotMatchException {
         if (tokens.current() == SnlLexeme.PLUS || tokens.current() == SnlLexeme.MINUS || tokens.current() == SnlLexeme.LT || tokens.current() == SnlLexeme.EQ || tokens.current() == SnlLexeme.RMIDPAREN || tokens.current() == SnlLexeme.THEN || tokens.current() == SnlLexeme.ELSE || tokens.current() == SnlLexeme.FI || tokens.current() == SnlLexeme.DO || tokens.current() == SnlLexeme.ENDWH || tokens.current() == SnlLexeme.RPAREN || tokens.current() == SnlLexeme.END || tokens.current() == SnlLexeme.SEMI || tokens.current() == SnlLexeme.COMMA) {
-            // pass
+            return Optional.empty();
         } else if (tokens.current() == SnlLexeme.TIMES || tokens.current() == SnlLexeme.OVER) {
+            var exp = new TreeNode();
+            exp.setNodeK(NodeKind.ExpK);
             MultOp(exp);
-            var exp2 = TreeNode.ofParent(exp, NodeKind.ExpK);
-            Term(exp2);
+            var exp2 = Term();
+
+            exp.addChild(exp2);
+            return Optional.of(exp);
         } else {
             throw new TokenNotMatchException();
         }
     }
 
-    public void Factor(TreeNode exp) throws TokenNotMatchException {
+    public TreeNode Factor() throws TokenNotMatchException {
         if (tokens.current() == SnlLexeme.LPAREN) {
             tokens.match(SnlLexeme.LPAREN);
-            var son = TreeNode.ofParent(exp, NodeKind.ExpK);
-            Exp(son);
+            var exp = Exp();
             tokens.match(SnlLexeme.RPAREN);
+
+            return exp;
         } else if (tokens.current() == SnlLexeme.INTC) {
             var val = tokens.match(SnlLexeme.INTC);
+
+            var exp = new TreeNode();
+            exp.setNodeK(NodeKind.ExpK);
             exp.setKind(Kind.ConstK);
             exp.getName().add(val.getToken());
+
+            return exp;
         } else if (tokens.current() == SnlLexeme.ID) {
+            var exp = new TreeNode();
+            exp.setNodeK(NodeKind.ExpK);
+            exp.setAttr(new ExprAttr(SnlLexeme.ID, VarKind.IdV, ExpType.Integer));
             Variable(exp);
+            return exp;
         } else {
             throw new TokenNotMatchException();
         }
@@ -611,10 +657,10 @@ public class Parser {
         if (tokens.current() == SnlLexeme.RMIDPAREN || tokens.current() == SnlLexeme.ASSIGN || tokens.current() == SnlLexeme.TIMES || tokens.current() == SnlLexeme.OVER || tokens.current() == SnlLexeme.PLUS || tokens.current() == SnlLexeme.MINUS || tokens.current() == SnlLexeme.LT || tokens.current() == SnlLexeme.EQ || tokens.current() == SnlLexeme.THEN || tokens.current() == SnlLexeme.ELSE || tokens.current() == SnlLexeme.FI || tokens.current() == SnlLexeme.DO || tokens.current() == SnlLexeme.ENDWH || tokens.current() == SnlLexeme.RPAREN || tokens.current() == SnlLexeme.END || tokens.current() == SnlLexeme.SEMI || tokens.current() == SnlLexeme.COMMA) {
             // pass
         } else if (tokens.current() == SnlLexeme.LMIDPAREN) {
-            var arrayMem = TreeNode.ofParent(exp, NodeKind.ExpK);
-            arrayMem.setAttr(new ExprAttr(SnlLexeme.ARRAY, VarKind.ArrayMembV, ExpType.Void));
             tokens.match(SnlLexeme.LMIDPAREN);
-            Exp(arrayMem);
+            var arrayMem = Exp();
+            arrayMem.setNodeK(NodeKind.ExpK);
+            arrayMem.setAttr(new ExprAttr(SnlLexeme.ARRAY, VarKind.ArrayMembV, ExpType.Void));
             tokens.match(SnlLexeme.RMIDPAREN);
         } else if (tokens.current() == SnlLexeme.DOT) {
             var field = TreeNode.ofParent(exp, NodeKind.ExpK);
@@ -636,23 +682,28 @@ public class Parser {
         if (tokens.current() == SnlLexeme.ASSIGN || tokens.current() == SnlLexeme.TIMES || tokens.current() == SnlLexeme.OVER || tokens.current() == SnlLexeme.PLUS || tokens.current() == SnlLexeme.MINUS || tokens.current() == SnlLexeme.LT || tokens.current() == SnlLexeme.EQ || tokens.current() == SnlLexeme.THEN || tokens.current() == SnlLexeme.ELSE || tokens.current() == SnlLexeme.FI || tokens.current() == SnlLexeme.DO || tokens.current() == SnlLexeme.ENDWH || tokens.current() == SnlLexeme.RPAREN || tokens.current() == SnlLexeme.END || tokens.current() == SnlLexeme.SEMI || tokens.current() == SnlLexeme.COMMA) {
             // pass
         } else if (tokens.current() == SnlLexeme.LMIDPAREN) {
-            var arrayMem = TreeNode.ofParent(parent, NodeKind.ExpK);
-            arrayMem.setAttr(new ExprAttr(SnlLexeme.ARRAY, VarKind.ArrayMembV, ExpType.Void));
             tokens.match(SnlLexeme.LMIDPAREN);
-            Exp(arrayMem);
+            var arrayMem = Exp();
+            parent.addChild(arrayMem);
+            arrayMem.setAttr(new ExprAttr(SnlLexeme.ARRAY, VarKind.ArrayMembV, ExpType.Void));
             tokens.match(SnlLexeme.RMIDPAREN);
         } else {
             throw new TokenNotMatchException();
         }
     }
 
-    public void CmpOp(TreeNode parent) throws TokenNotMatchException {
+    public TreeNode CmpOp() throws TokenNotMatchException {
+        var cmpNode = new TreeNode();
+        cmpNode.setNodeK(NodeKind.ExpK);
+        cmpNode.setKind(Kind.OpK);
         if (tokens.current() == SnlLexeme.LT) {
             tokens.match(SnlLexeme.LT);
-            parent.setAttr(new ExprAttr(SnlLexeme.LT, null, ExpType.Boolean));
+            cmpNode.setAttr(new ExprAttr(SnlLexeme.LT, null, ExpType.Boolean));
+            return cmpNode;
         } else if (tokens.current() == SnlLexeme.EQ) {
             tokens.match(SnlLexeme.EQ);
-            parent.setAttr(new ExprAttr(SnlLexeme.EQ, null, ExpType.Boolean));
+            cmpNode.setAttr(new ExprAttr(SnlLexeme.EQ, null, ExpType.Boolean));
+            return cmpNode;
         } else {
             throw new TokenNotMatchException();
         }
