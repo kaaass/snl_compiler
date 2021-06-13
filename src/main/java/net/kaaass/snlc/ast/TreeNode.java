@@ -1,7 +1,7 @@
 package net.kaaass.snlc.ast;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+import net.kaaass.snlc.ast.attr.BaseAttr;
 
 import java.util.List;
 
@@ -10,13 +10,27 @@ import java.util.List;
  *
  * @author kevina
  */
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@Data
+@Getter
+@NoArgsConstructor
 public class TreeNode {
     private List<TreeNode> child;
-    private TreeNode sibling;
-    private Integer lineno;
+    private TreeNode parent = null;
     private NodeKind nodeK;
     private Kind kind;
+    private Integer dept = 0;
+    private BaseAttr attr;
+    private String typeName;
+
+    public static TreeNode ofParent(TreeNode parent, NodeKind kind) {
+        var node = new TreeNode();
+        node.dept = parent.getDept() + 1;
+        node.parent = parent;
+        node.nodeK = kind;
+        parent.getChild().add(node);
+
+        return node;
+    }
 
     /**
      * 标识符个数
@@ -27,55 +41,6 @@ public class TreeNode {
      * 标识符名字
      */
     private List<String> name;
-
-
-    public static TreeNode ofDecK() {
-        var node = new TreeNode();
-        node.nodeK = NodeKind.DecK;
-        return node;
-    }
-
-    public static TreeNode ofExpK() {
-        var node = new TreeNode();
-        node.nodeK = NodeKind.ExpK;
-        return node;
-    }
-
-    public static TreeNode ofProK() {
-        var node = new TreeNode();
-        node.nodeK = NodeKind.ProK;
-        return node;
-    }
-
-    public static TreeNode ofProcDecK() {
-        var node = new TreeNode();
-        node.nodeK = NodeKind.ProcDecK;
-        return node;
-    }
-
-    public static TreeNode ofStmLK() {
-        var node = new TreeNode();
-        node.nodeK = NodeKind.StmLK;
-        return node;
-    }
-
-    public static TreeNode ofStmtK() {
-        var node = new TreeNode();
-        node.nodeK = NodeKind.StmtK;
-        return node;
-    }
-
-    public static TreeNode ofTypeK() {
-        var node = new TreeNode();
-        node.nodeK = NodeKind.TypeK;
-        return node;
-    }
-
-    public static TreeNode ofVarK() {
-        var node = new TreeNode();
-        node.nodeK = NodeKind.VarK;
-        return node;
-    }
 
     public void print(int dept) {
         // todo print tree
