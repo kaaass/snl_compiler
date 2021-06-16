@@ -25,7 +25,7 @@ public class Parser {
 
     private final Tokens tokens;
 
-    static Parser of(List<TokenResult<SnlLexeme>> tokenList) {
+    public static Parser of(List<TokenResult<SnlLexeme>> tokenList) {
         return new Parser(new Tokens(tokenList));
     }
 
