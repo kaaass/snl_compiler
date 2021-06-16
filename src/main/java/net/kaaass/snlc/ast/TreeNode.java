@@ -26,7 +26,6 @@ public class TreeNode {
     private Kind kind;
     private Integer dept = 0;
     private BaseAttr attr;
-    private String typeName;
     private List<String> name;
 
     public TreeNode() {
