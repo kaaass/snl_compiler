@@ -6,7 +6,7 @@ package net.kaaass.snlc.lexer.engine;
  */
 public interface IRevertibleStream {
 
-    public static final char EOF = '\0';
+    char EOF = '\0';
 
     /**
      * 获得当前流状态

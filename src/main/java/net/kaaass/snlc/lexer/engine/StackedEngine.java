@@ -8,13 +8,18 @@ import net.kaaass.snlc.lexer.exception.EofParseException;
 import net.kaaass.snlc.lexer.exception.LexParseException;
 import net.kaaass.snlc.lexer.exception.UnexpectedCharException;
 
+import java.util.Stack;
+
 /**
- * 基础匹配引擎。匹配最长且优先级最高的 Token（即定义的越早的）。
+ * 栈式匹配引擎。允许追溯旧匹配信息
+ *
  * @author kaaass
- * @param <T> 语言
  */
-public class BasicEngine<T> extends BaseLexEngine<T> {
-    public BasicEngine(Lexer<T> lexer) {
+public class StackedEngine<T> extends BaseLexEngine<T> {
+
+    private final Stack<MatchedInfo> matchedStack = new Stack<>();
+
+    public StackedEngine(Lexer<T> lexer) {
         super(lexer);
     }
 
@@ -26,7 +31,7 @@ public class BasicEngine<T> extends BaseLexEngine<T> {
     @Override
     protected TokenResult<T> readToken(LexContext<T> context) throws LexParseException {
         int initStreamState = this.stream.getState();
-        MatchedInfo matchedInfo = null;
+        matchedStack.clear();
         // 匹配
         var dfa = context.getState();
         int state = dfa.startState;
@@ -52,14 +57,17 @@ public class BasicEngine<T> extends BaseLexEngine<T> {
             // 检查匹配
             var matched = dfa.tokenMat.get(state);
             if (matched != null && !matched.isEmpty()) {
-                matchedInfo = createMatchedInfo(matched.get(0));
+                for (int i = matched.size() - 1; i >= 0; i--) {
+                    matchedStack.push(createMatchedInfo(matched.get(i)));
+                }
             }
         }
         // 是否有匹配
-        if (matchedInfo != null) {
+        while (!matchedStack.empty()) {
             // 回退流到初始状态，用于获取匹配内容
             this.stream.revert(initStreamState);
             // 产生 token
+            var matchedInfo = matchedStack.peek();
             var result = processMatchedToken(context, matchedInfo);
             switch (result.getType()) {
                 case ACCEPT:
@@ -67,8 +75,9 @@ public class BasicEngine<T> extends BaseLexEngine<T> {
                     matchedInfo.accept();
                     return result.getToken();
                 case REJECT:
-                    // 拒绝 Token，不支持
-                    throw new UnsupportedOperationException("引擎不支持拒绝操作！");
+                    // 拒绝 Token，弹栈
+                    matchedStack.pop();
+                    continue;
                 case NONE:
                 default:
                     // 不进行操作，确认之前匹配信息

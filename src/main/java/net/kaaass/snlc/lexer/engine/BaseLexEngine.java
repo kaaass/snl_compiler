@@ -8,6 +8,7 @@ import net.kaaass.snlc.lexer.*;
 import net.kaaass.snlc.lexer.exception.*;
 
 import java.util.Stack;
+import java.util.function.Supplier;
 
 /**
  * 词法匹配引擎基类
@@ -25,6 +26,10 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
 
     protected Stack<LexContext<T>> contextStack = new Stack<>();
 
+    protected int line = -1;
+
+    protected int position = -1;
+
     /**
      * 初始化引擎以读入流
      */
@@ -32,15 +37,26 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
         this.currentContext = lexer.getContexts().get(LexContext.DEFAULT);
         this.stream = stream;
         // 初始化上下文栈
-        contextStack.clear();
-        contextStack.push(this.currentContext);
+        this.contextStack.clear();
+        this.contextStack.push(this.currentContext);
+        // 初始化读取位置
+        this.line = 1;
+        this.position = 0;
         // 调用具体引擎初始化
         reset();
     }
 
     @Override
     public TokenResult<T> readToken() throws LexParseException {
-        var result = readToken(this.currentContext);
+        TokenResult<T> result;
+        // 匹配
+        try {
+            result = readToken(this.currentContext);
+        } catch (LexParseException e) {
+            e.setLine(this.line);
+            e.setPosition(this.position);
+            throw e;
+        }
         // 结束解析时上下文栈非空
         if (this.stream.isEof() && this.contextStack.size() > 1) {
             throw new ContextStackNonEmptyException();
@@ -60,14 +76,22 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
      */
     protected char read() {
         var chr = this.stream.read();
-        // TODO count line
+        // 统计行
+        if (chr == '\n') {
+            this.line++;
+            this.position = 0;
+        } else {
+            this.position++;
+        }
         return chr;
     }
 
     /**
      * 处理单次匹配结果
      */
-    protected ActionResult<T> processMatchedToken(LexContext<T> context, int tokenId, int endStreamState) {
+    protected ActionResult<T> processMatchedToken(LexContext<T> context, MatchedInfo matchedInfo) {
+        var tokenId = matchedInfo.getAcceptedToken();
+        var endStreamState = matchedInfo.getStreamState();
         var tokenInfo = context.getToken(tokenId);
         var action = tokenInfo.getMatchedAction();
         // 如果没有设置动作，直接接受
@@ -129,6 +153,19 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
     }
 
     /**
+     * 创建匹配信息
+     * @param acceptedToken 当前匹配的 token 号
+     */
+    protected MatchedInfo createMatchedInfo(int acceptedToken) {
+        return new MatchedInfo(
+                acceptedToken,
+                this.stream.getState(),
+                this.line,
+                this.position
+        );
+    }
+
+    /**
      * Token 匹配上下文。匹配执行动作的参数。
      */
     @Getter
@@ -183,6 +220,12 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
         public LexContext<T> currentContext() {
             return currentContext;
         }
+
+        @SneakyThrows
+        @Override
+        public void fail(Supplier<? extends LexParseException> exceptionSupplier) {
+            throw exceptionSupplier.get();
+        }
     }
 
     /**
@@ -212,6 +255,27 @@ public abstract class BaseLexEngine<T> implements ILexEngine<T> {
             ret.setType(ActionResultType.ACCEPT);
             ret.setToken(token);
             return ret;
+        }
+    }
+
+    /**
+     * 匹配信息
+     */
+    @Data
+    public class MatchedInfo {
+        private final int acceptedToken;
+        private final int streamState;
+        private final int line;
+        private final int position;
+
+        /**
+         * 以当前匹配信息确认
+         */
+        public void accept() {
+            BaseLexEngine.this.stream.accept(this.streamState);
+            BaseLexEngine.this.stream.revert(this.streamState);
+            BaseLexEngine.this.line = this.line;
+            BaseLexEngine.this.position = this.position;
         }
     }
 }

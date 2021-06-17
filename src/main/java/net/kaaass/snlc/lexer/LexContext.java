@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kaaass.snlc.lexer.dfa.DfaGraph;
 import net.kaaass.snlc.lexer.dfa.DfaSerializer;
+import net.kaaass.snlc.lexer.dfa.DfaSimplifier;
 import net.kaaass.snlc.lexer.exception.UndefinedTokenException;
-import net.kaaass.snlc.lexer.regex.RegexExpression;
 
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 词法分析上下文，包含对指定语法的真正分析结构
@@ -71,23 +72,16 @@ public class LexContext<T> {
         if (tokens.isEmpty()) {
             return;
         }
-        // 第一步：组合正则
-        RegexExpression regex = null;
-        for (var token : tokens) {
-            var cur = token.getRegex();
-            // 设置匹配组
-            cur.group(token.getId());
-            // 组合正则
-            if (regex == null) {
-                regex = cur;
-            } else {
-                regex = RegexExpression.or(regex, cur);
-            }
-        }
+        // 第一步：设置匹配组
+        var regexes = tokens.stream()
+                .map(info -> info.getRegex().group(info.getId()))
+                .collect(Collectors.toList());
         // 第二步：转换 NFA
-        var nfa = regex.toNfa();
+        var nfa = (new GlushkovRegexTranslator()).translateRegexes(regexes);
         // 第三步：转换 DFA
         var dfa = SubsetConstructAlgorithm.convert(nfa);
+        // 第四步：化简 DFA 状态
+        dfa = DfaSimplifier.run(dfa);
         this.state = State.fromDfa(dfa);
     }
 
@@ -111,7 +105,7 @@ public class LexContext<T> {
         private transient WeakReference<DfaGraph> source = null;
 
         public static State fromDfa(DfaGraph dfa) {
-            var serializer = DfaSerializer.serialize(dfa);
+            var serializer = DfaSerializer.on(dfa);
             var ret = new State(serializer.getCharMap(),
                     serializer.getTransMat(),
                     serializer.getTokenMat(),

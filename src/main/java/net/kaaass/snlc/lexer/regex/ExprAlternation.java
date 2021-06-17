@@ -1,14 +1,13 @@
 package net.kaaass.snlc.lexer.regex;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 /**
  * 或正则表达式
  * @author kaaass
  */
-@Data
+@Getter
+@Setter
 @EqualsAndHashCode(callSuper = false)
 @RequiredArgsConstructor
 public class ExprAlternation extends RegexExpression {
@@ -22,4 +21,13 @@ public class ExprAlternation extends RegexExpression {
         return visitor.visit(this);
     }
 
+    @Override
+    public String friendlyString() {
+        return String.format("(%s | %s)", leftRegex.friendlyString(), rightRegex.friendlyString());
+    }
+
+    @Override
+    public RegexExpression deepCopy() {
+        return new ExprAlternation(this.leftRegex.deepCopy(), this.rightRegex.deepCopy());
+    }
 }

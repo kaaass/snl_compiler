@@ -11,7 +11,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-@ToString(of = {"id"})
+@ToString(of = {"id", "matchedToken"})
 @EqualsAndHashCode(of = {"parent", "id"})
 public class NfaState {
 
