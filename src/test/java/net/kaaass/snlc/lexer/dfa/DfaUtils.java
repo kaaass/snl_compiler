@@ -1,8 +1,6 @@
 package net.kaaass.snlc.lexer.dfa;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class DfaUtils {
 
@@ -33,11 +31,17 @@ public class DfaUtils {
 
     public static void printGraph(DfaGraph graph) {
         System.out.println("Start state: " + graph.getStartState().getId());
-        graph.getStates().forEach(state -> {
-            var from = state;
-            state.getNextEdges().forEach(edge -> {
+        graph.getStates().forEach(from -> {
+            var toMapChars = new HashMap<DfaState, Set<Character>>();
+            from.getNextEdges().forEach(edge -> {
                 var to = edge.getNextState();
-                System.out.printf("%s --%c--> %s\n", from, edge.getMatchChar(), to);
+                var chars = toMapChars.computeIfAbsent(to, dfaState -> new HashSet<>());
+                chars.add(edge.getMatchChar());
+            });
+            toMapChars.forEach((to, chars) -> {
+                var sorted = new ArrayList<>(chars);
+                sorted.sort(Character::compareTo);
+                System.out.printf("%s --%s--> %s\n", from, sorted, to);
             });
         });
     }
