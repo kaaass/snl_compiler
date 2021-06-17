@@ -1,0 +1,105 @@
+Program ProgramHead DeclarePart ProgramBody .
+ProgramHead PROGRAM ProgramName
+ProgramName ID
+DeclarePart TypeDecPart VarDecPart ProcDecPart
+TypeDecPart EPSILON
+TypeDecPart TypeDec
+TypeDec TYPE TypeDecList
+TypeDecList TypeId = TypeDef ; TypeDecMore
+TypeDecMore EPSILON
+TypeDecMore TypeDecList
+TypeId ID
+TypeDef BaseType
+TypeDef StructureType
+TypeDef ID
+BaseType INTEGER
+BaseType CHAR
+StructureType ArrayType
+StructureType RecType
+ArrayType ARRAY [ Low .. Top ] OF BaseType
+Low INTC
+Top INTC
+RecType RECORD FieldDecList END
+FieldDecList BaseType IdList ; FieldDecMore
+FieldDecList ArrayType IdList ; FieldDecMore
+FieldDecMore EPSILON
+FieldDecMore FieldDecList
+IdList ID IdMore
+IdMore EPSILON
+IdMore , IdList
+VarDecPart EPSILON
+VarDecPart VarDec
+VarDec VAR VarDecList
+VarDecList TypeDef VarIdList ; VarDecMore
+VarDecMore EPSILON
+VarDecMore VarDecList
+VarIdList ID VarIdMore
+VarIdMore EPSILON
+VarIdMore , VarIdList
+ProcDecPart EPSILON
+ProcDecPart ProcDec
+ProcDec PROCEDURE ProcName ( ParamList ) ; DecPartInner ProcBody ProcDecMore
+ProcDecMore EPSILON
+ProcDecMore ProcDec
+ProcName ID
+ParamList EPSILON
+ParamList ParamDecList
+ParamDecList Param ParamMore
+ParamMore EPSILON
+ParamMore ; ParamDecList
+Param TypeDef FormList
+Param VAR TypeDef FormList
+FormList ID FidMore
+FidMore EPSILON
+FidMore , FormList
+DecPartInner DeclarePart
+ProcBody ProgramBody
+ProgramBody BEGIN StmList END
+StmList Stm StmMore
+StmMore EPSILON
+StmMore ; StmList
+Stm ConditionalStm
+Stm LoopStm
+Stm InputStm
+Stm OutputStm
+Stm ReturnStm
+Stm ID AssCall
+AssCall AssignmentRest
+AssCall CallStmRest
+AssignmentRest VariMore := Exp
+ConditionalStm IF RelExp THEN StmList ELSE StmList FI
+LoopStm WHILE RelExp DO StmList ENDWH
+InputStm READ ( InVar )
+InVar ID
+OutputStm WRITE ( Exp )
+ReturnStm RETURN
+CallStmRest ( ActParamList )
+ActParamList EPSILON
+ActParamList Exp ActParamMore
+ActParamMore EPSILON
+ActParamMore , ActParamList
+RelExp Exp OtherRelE
+OtherRelE CmpOp Exp
+Exp Term OtherTerm
+OtherTerm EPSILON
+OtherTerm AddOp Exp
+Term Factor OtherFactor
+OtherFactor EPSILON
+OtherFactor MultOp Term
+Factor ( Exp )
+Factor INTC
+Factor CHARC
+Factor Variable
+Variable ID VariMore
+VariMore EPSILON
+VariMore [ Exp ]
+VariMore . FieldVar
+FieldVar ID FieldVarMore
+FieldVarMore EPSILON
+FieldVarMore [ Exp ]
+CmpOp <
+CmpOp =
+AddOp +
+AddOp -
+MultOp *
+MultOp /
